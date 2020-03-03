@@ -97,3 +97,81 @@ func (f *FieldElement) Add(fe FieldElement) (fld FieldElement, err error) {
 
 	return fld, nil
 }
+
+// Sub returns the mod subtraction of two fields
+func (f *FieldElement) Sub(fe FieldElement) (fld FieldElement, err error) {
+
+	var field = FieldElement{
+		num:   f.num,
+		prime: f.prime,
+	}
+	if CheckField(field, fe) {
+		return fld, errors.New("Not member of same field")
+	}
+
+	var res = f.num - fe.num
+	var mod = math.Mod(res, f.prime)
+	fld = FieldElement{
+		num:   mod,
+		prime: f.prime,
+	}
+
+	return fld, nil
+}
+
+// Mul returns the mod multiplication of two fields
+func (f *FieldElement) Mul(fe FieldElement) (fld FieldElement, err error) {
+
+	var field = FieldElement{
+		num:   f.num,
+		prime: f.prime,
+	}
+	if CheckField(field, fe) {
+		return fld, errors.New("Not member of same field")
+	}
+
+	var res = f.num * fe.num
+	var mod = math.Mod(res, f.prime)
+	fld = FieldElement{
+		num:   mod,
+		prime: f.prime,
+	}
+
+	return fld, nil
+}
+
+// Pow returns the mod exponent of an element
+func (f *FieldElement) Pow(exp float64) (fld FieldElement, err error) {
+
+	var res = math.Pow(f.num, exp)
+	var mod = math.Mod(res, f.prime)
+	fld = FieldElement{
+		num:   mod,
+		prime: f.prime,
+	}
+
+	return fld, nil
+}
+
+// Div returns the mod division of two fields
+func (f *FieldElement) Div(fe FieldElement) (fld FieldElement, err error) {
+
+	var field = FieldElement{
+		num:   f.num,
+		prime: f.prime,
+	}
+	if CheckField(field, fe) {
+		return fld, errors.New("Not member of same field")
+	}
+
+	var ex = f.prime - 2
+	var pwr = math.Pow(fe.num, ex)
+	var res = f.num * pwr
+	var mod = math.Mod(res, f.prime)
+	fld = FieldElement{
+		num:   mod,
+		prime: f.prime,
+	}
+
+	return fld, nil
+}
