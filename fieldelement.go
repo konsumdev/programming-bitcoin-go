@@ -1,4 +1,4 @@
-package fieldelement
+package main
 
 type num float64
 type prime float64
