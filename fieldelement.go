@@ -21,21 +21,24 @@ func (f *FieldElement) print() string {
 }
 
 // NewFieldElement returns new field element
-func (f *FieldElement) NewFieldElement(num float64, prime float64) error {
+func NewFieldElement(num float64, prime float64) (FieldElement, error) {
 
 	if num >= prime || num < 0 {
-		return errors.New("Num not in field range of prime")
+		return FieldElement{}, errors.New("Num not in field range of prime")
 	}
 
-	f.num = num
-	f.prime = prime
+	fe := FieldElement{
+		num:   num,
+		prime: prime,
+	}
 
-	return nil
+	return fe, nil
 }
 
 // CheckField checks if the two elements are member of same field
-func CheckField(f FieldElement, fe FieldElement) bool {
-	if f.prime == fe.prime {
+func CheckField(f float64, fe float64) bool {
+
+	if f == fe {
 		return true
 	}
 
@@ -49,7 +52,7 @@ func (f *FieldElement) IsEqual(fe FieldElement) (bool, error) {
 		num:   f.num,
 		prime: f.prime,
 	}
-	if CheckField(field, fe) {
+	if CheckField(field.prime, fe.prime) {
 		return false, errors.New("Not member of same field")
 	}
 
@@ -66,7 +69,7 @@ func (f *FieldElement) IsNotEqual(fe FieldElement) (bool, error) {
 		num:   f.num,
 		prime: f.prime,
 	}
-	if CheckField(field, fe) {
+	if CheckField(field.prime, fe.prime) {
 		return false, errors.New("Not member of same field")
 	}
 
@@ -78,24 +81,20 @@ func (f *FieldElement) IsNotEqual(fe FieldElement) (bool, error) {
 }
 
 // Add returns the mod sum of two fields
-func (f *FieldElement) Add(fe FieldElement) (fld FieldElement, err error) {
+func (f *FieldElement) Add(fe FieldElement) (float64, error) {
 
-	var field = FieldElement{
-		num:   f.num,
-		prime: f.prime,
-	}
-	if CheckField(field, fe) {
-		return fld, errors.New("Not member of same field")
+	if !CheckField(f.prime, fe.prime) {
+		return 0, errors.New("Not members of the same field")
 	}
 
 	var res = f.num + fe.num
 	var mod = math.Mod(res, f.prime)
-	fld = FieldElement{
-		num:   mod,
-		prime: f.prime,
-	}
+	// fld = FieldElement{
+	// 	num:   mod,
+	// 	prime: f.prime,
+	// }
 
-	return fld, nil
+	return mod, nil
 }
 
 // Sub returns the mod subtraction of two fields
@@ -105,8 +104,8 @@ func (f *FieldElement) Sub(fe FieldElement) (fld FieldElement, err error) {
 		num:   f.num,
 		prime: f.prime,
 	}
-	if CheckField(field, fe) {
-		return fld, errors.New("Not member of same field")
+	if !CheckField(field.prime, fe.prime) {
+		return fld, errors.New("Not members of same field")
 	}
 
 	var res = f.num - fe.num
@@ -126,7 +125,7 @@ func (f *FieldElement) Mul(fe FieldElement) (fld FieldElement, err error) {
 		num:   f.num,
 		prime: f.prime,
 	}
-	if CheckField(field, fe) {
+	if CheckField(field.prime, fe.prime) {
 		return fld, errors.New("Not member of same field")
 	}
 
@@ -160,7 +159,7 @@ func (f *FieldElement) Div(fe FieldElement) (fld FieldElement, err error) {
 		num:   f.num,
 		prime: f.prime,
 	}
-	if CheckField(field, fe) {
+	if CheckField(field.prime, fe.prime) {
 		return fld, errors.New("Not member of same field")
 	}
 
