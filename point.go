@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"strconv"
 )
@@ -16,11 +17,23 @@ type Point struct {
 	infy bool
 }
 
+func (p *Point) print() {
+	a := p.a
+	b := p.b
+	x := p.x
+	y := p.y
+
+	fmt.Printf("(%.f, %.f)_%.f_%.f\n\n", x, y, a, b)
+}
+
 // NewPoint creates a newpoint struct, if x,y coordonates are empty then they will be treated as infinity
-func NewPoint(x string, y string, a float64, b float64) (*Point, error) {
+func NewPoint(x string, y string, aa string, bb string) (*Point, error) {
 
 	var infx bool // boolean flag if x coordinate is infinity; true = infinity
 	var infy bool // boolean flag if y coordinate is infinity
+
+	a, _ := strconv.ParseFloat(aa, 64)
+	b, _ := strconv.ParseFloat(bb, 64)
 
 	if x == "" || y == "" {
 		return &Point{a, b, 0, 0, true, true}, nil

@@ -67,7 +67,9 @@ Loopers:
 		fmt.Print("\nYou have chosen " + choice + "\n\n")
 		defer PerformFieldElement()
 	case "b":
-		fmt.Println("You have chosen " + choice)
+		ClearScreen()
+		fmt.Print("\nYou have chosen " + choice + "\n\n")
+		PerformPointAddition()
 	case "x":
 		ClearScreen()
 		defer prompt()
@@ -79,6 +81,59 @@ Loopers:
 		fmt.Print("Unrecognised input\n")
 		defer prompt()
 	}
+}
+
+// GetCoors test module for point addition
+func GetCoors() (string, string, string, string) {
+	readerFe := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Enter value for a: ")
+	a, _ := readerFe.ReadString('\n')
+	a = strings.TrimSuffix(a, "\n")
+
+	fmt.Print("Enter value for b: ")
+	b, _ := readerFe.ReadString('\n')
+	b = strings.TrimSuffix(b, "\n")
+
+	fmt.Print("Enter value for x: ")
+	x, _ := readerFe.ReadString('\n')
+	x = strings.TrimSuffix(x, "\n")
+
+	fmt.Print("Enter value for y: ")
+	y, _ := readerFe.ReadString('\n')
+	y = strings.TrimSuffix(y, "\n")
+
+	return x, y, a, b
+}
+
+// PerformPointAddition test module for point addition
+func PerformPointAddition() {
+
+	fmt.Print("\nPoint Addition\n\n")
+	fmt.Println("Point 1")
+	x, y, a, b := GetCoors()
+	point, err := NewPoint(x, y, a, b)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("Point 2")
+	x2, y2, a2, b2 := GetCoors()
+
+	// fmt.Printf("Point(%s, %s)_%s_%s\n\n", x, y, a, b)
+	// fmt.Print(" + ")
+	// fmt.Printf("Point(%s, %s)_%s_%s\n\n", x2, y2, a2, b2)
+
+	point2, err := NewPoint(x2, y2, a2, b2)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	point.print()
+	point2.print()
+
+	res, _ := point.Add(point2)
+	res.print()
 }
 
 // PerformFieldElement test module for finite fields
