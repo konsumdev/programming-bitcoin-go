@@ -129,9 +129,6 @@ func PerformPointAddition() {
 		fmt.Println(err)
 	}
 
-	point.print()
-	point2.print()
-
 	res, _ := point.Add(point2)
 	res.print()
 }
