@@ -85,7 +85,7 @@ Loopers:
 func PerformFieldElement() {
 	readerFe := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Finite Fields\n\n")
+	fmt.Print("\nFinite Fields\n\n")
 	fmt.Println("a] Addition")
 	fmt.Println("b] Subtraction")
 	fmt.Println("c] Multiplication")
@@ -102,13 +102,13 @@ func PerformFieldElement() {
 	case "a":
 		AddFe()
 	case "b":
-		fmt.Println("You have chosen " + choice)
+		SubFe()
 	case "c":
-		fmt.Println("You have chosen " + choice)
+		MulFe()
 	case "d":
-		fmt.Println("You have chosen " + choice)
+		ExpFe()
 	case "e":
-		fmt.Println("You have chosen " + choice)
+		DivFe()
 	case "x":
 		ClearScreen()
 		defer PerformFieldElement()
@@ -122,46 +122,159 @@ func PerformFieldElement() {
 	}
 }
 
-//AddFe test module for finite field addition
-func AddFe() {
+// DivFe test module for finite field multiplication
+func DivFe() {
 	ClearScreen()
-	readerFe := bufio.NewReader(os.Stdin)
+	fmt.Print("Finite Field Division\n\n")
 
-	fmt.Print("Finite Field Addition\n\n")
+	elem1, elem2 := InpReader()
+
+	res, err := elem1.Div(elem2)
+	if err != nil {
+		fmt.Println(err)
+	}
+	s := fmt.Sprintf("%.f", res)
+	fmt.Println("Result: " + s)
+
+	defer PerformFieldElement()
+}
+
+// ExpFe test module for finite field exponentiation
+func ExpFe() {
+	ClearScreen()
+	fmt.Print("Finite Field Exponentiation\n\n")
+
+	readerFe := bufio.NewReader(os.Stdin)
 
 	fmt.Print("Enter field size: ")
 
 	sizeIn, _ := readerFe.ReadString('\n')
 	sizeIn = strings.TrimSuffix(sizeIn, "\n")
-	// size, _ := strconv.ParseFloat(sizeIn, 64)
+	size, _ := strconv.ParseFloat(sizeIn, 64)
+
 	fmt.Print("\nField size is: " + sizeIn + "\n\n")
+	var elem1 FieldElement
+	var err error
+Ask:
+	for {
+		fmt.Print("Enter number: ")
+		num1, _ := readerFe.ReadString('\n')
+		num1 = strings.TrimSuffix(num1, "\n")
+		n1, _ := strconv.ParseFloat(num1, 64)
+		elem1, err = NewFieldElement(n1, 5)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			break Ask
+		}
+	}
 
-	fmt.Print("Enter first number: ")
-	num1, _ := readerFe.ReadString('\n')
-	num1 = strings.TrimSuffix(num1, "\n")
-	n1, _ := strconv.ParseFloat(num1, 64)
-	elem1, err := NewFieldElement(n1, 5)
+	res, err := elem1.Pow(size)
 	if err != nil {
 		fmt.Println(err)
 	}
-	// fmt.Println(elem1.print())
+	s := fmt.Sprintf("%.f", res)
+	fmt.Println("Result: " + s)
 
-	fmt.Print("Enter another number: ")
-	num2, _ := readerFe.ReadString('\n')
-	num2 = strings.TrimSuffix(num2, "\n")
-	n2, _ := strconv.ParseFloat(num2, 64)
-	elem2, err := NewFieldElement(n2, 5)
+	defer PerformFieldElement()
+}
+
+// MulFe test module for finite field multiplication
+func MulFe() {
+	ClearScreen()
+	fmt.Print("Finite Field Multiplication\n\n")
+
+	elem1, elem2 := InpReader()
+
+	res, err := elem1.Mul(elem2)
 	if err != nil {
 		fmt.Println(err)
 	}
-	// fmt.Println(elem2.print())
+	s := fmt.Sprintf("%.f", res)
+	fmt.Println("Result: " + s)
+
+	defer PerformFieldElement()
+}
+
+// SubFe test module for finite field subtraction
+func SubFe() {
+	ClearScreen()
+	fmt.Print("Finite Field Subtraction\n\n")
+
+	elem1, elem2 := InpReader()
+
+	res, err := elem1.Sub(elem2)
+	if err != nil {
+		fmt.Println(err)
+	}
+	s := fmt.Sprintf("%.f", res)
+	fmt.Println("Result: " + s)
+
+	defer PerformFieldElement()
+}
+
+// InpReader test module for finite field addition
+func InpReader() (f FieldElement, fe FieldElement) {
+
+	readerFe := bufio.NewReader(os.Stdin)
+
+	fmt.Print("Enter field size: ")
+
+	sizeIn, _ := readerFe.ReadString('\n')
+	sizeIn = strings.TrimSuffix(sizeIn, "\n")
+	size, _ := strconv.ParseFloat(sizeIn, 64)
+
+	fmt.Print("\nField size is: " + sizeIn + "\n")
+
+	var elem1 FieldElement
+	var elem2 FieldElement
+	var err error
+
+Ask:
+	for {
+		fmt.Print("Enter first number: ")
+		num1, _ := readerFe.ReadString('\n')
+		num1 = strings.TrimSuffix(num1, "\n")
+		n1, _ := strconv.ParseFloat(num1, 64)
+		elem1, err = NewFieldElement(n1, size)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			break Ask
+		}
+	}
+
+AskTwice:
+	for {
+		fmt.Print("Enter another number: ")
+		num2, _ := readerFe.ReadString('\n')
+		num2 = strings.TrimSuffix(num2, "\n")
+		n2, _ := strconv.ParseFloat(num2, 64)
+		elem2, err = NewFieldElement(n2, size)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			break AskTwice
+		}
+	}
+
+	return elem1, elem2
+}
+
+// AddFe test module for finite field addition
+func AddFe() {
+	ClearScreen()
+	fmt.Print("Finite Field Addition\n\n")
+
+	elem1, elem2 := InpReader()
 
 	res, err := elem1.Add(elem2)
 	if err != nil {
 		fmt.Println(err)
 	}
 	s := fmt.Sprintf("%.f", res)
-	fmt.Print("\n" + num1 + "+" + num2 + " = " + s + "\n\n\n")
+	fmt.Println("Result: " + s)
+	// fmt.Print("\n" + num1 + "+" + num2 + " = " + s + "\n\n\n")
 
 	defer PerformFieldElement()
 }
