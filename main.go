@@ -120,10 +120,6 @@ func PerformPointAddition() {
 	fmt.Println("Point 2")
 	x2, y2, a2, b2 := GetCoors()
 
-	// fmt.Printf("Point(%s, %s)_%s_%s\n\n", x, y, a, b)
-	// fmt.Print(" + ")
-	// fmt.Printf("Point(%s, %s)_%s_%s\n\n", x2, y2, a2, b2)
-
 	point2, err := NewPoint(x2, y2, a2, b2)
 	if err != nil {
 		fmt.Println(err)
@@ -326,7 +322,6 @@ func AddFe() {
 	}
 	s := fmt.Sprintf("%.f", res)
 	fmt.Println("Result: " + s)
-	// fmt.Print("\n" + num1 + "+" + num2 + " = " + s + "\n\n\n")
 
 	defer PerformFieldElement()
 }
