@@ -133,7 +133,7 @@ func PerformPointAddition() {
 func PerformFieldElement() {
 	readerFe := bufio.NewReader(os.Stdin)
 
-	fmt.Print("\nFinite Fields\n\n")
+	fmt.Print("\n\nFinite Fields\n\n")
 	fmt.Println("a] Addition")
 	fmt.Println("b] Subtraction")
 	fmt.Println("c] Multiplication")
@@ -181,8 +181,9 @@ func DivFe() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	s := fmt.Sprintf("%.f", res)
-	fmt.Println("Result: " + s)
+
+	// print result
+	res.print()
 
 	defer PerformFieldElement()
 }
@@ -221,8 +222,8 @@ Ask:
 	if err != nil {
 		fmt.Println(err)
 	}
-	s := fmt.Sprintf("%.f", res)
-	fmt.Println("Result: " + s)
+	// print result
+	res.print()
 
 	defer PerformFieldElement()
 }
@@ -238,8 +239,9 @@ func MulFe() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	s := fmt.Sprintf("%.f", res)
-	fmt.Println("Result: " + s)
+
+	// print result
+	res.print()
 
 	defer PerformFieldElement()
 }
@@ -255,8 +257,9 @@ func SubFe() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	s := fmt.Sprintf("%.f", res)
-	fmt.Println("Result: " + s)
+
+	// print result
+	res.print()
 
 	defer PerformFieldElement()
 }
@@ -320,8 +323,9 @@ func AddFe() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	s := fmt.Sprintf("%.f", res)
-	fmt.Println("Result: " + s)
+
+	// print result
+	res.print()
 
 	defer PerformFieldElement()
 }
