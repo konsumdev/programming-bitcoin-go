@@ -110,23 +110,40 @@ func GetCoors() (string, string, string, string) {
 func PerformPointAddition() {
 
 	fmt.Print("\nPoint Addition\n\n")
-	fmt.Println("Point 1")
-	x, y, a, b := GetCoors()
-	point, err := NewPoint(x, y, a, b)
-	if err != nil {
-		fmt.Println(err)
+
+	var point Point
+	var point2 Point
+	var err error
+
+Ask:
+	for {
+		fmt.Println("Point 1")
+		x, y, a, b := GetCoors()
+		point, err = NewPoint(x, y, a, b)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			break Ask
+		}
 	}
 
-	fmt.Println("Point 2")
-	x2, y2, a2, b2 := GetCoors()
+AskFurther:
+	for {
+		fmt.Println("Point 2")
+		x2, y2, a2, b2 := GetCoors()
 
-	point2, err := NewPoint(x2, y2, a2, b2)
-	if err != nil {
-		fmt.Println(err)
+		point2, err = NewPoint(x2, y2, a2, b2)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			break AskFurther
+		}
 	}
 
-	res, _ := point.Add(point2)
+	res, _ := point.Add(&point2)
 	res.print()
+
+	defer prompt()
 }
 
 // PerformFieldElement test module for finite fields

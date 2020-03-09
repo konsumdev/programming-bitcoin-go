@@ -27,7 +27,7 @@ func (p *Point) print() {
 }
 
 // NewPoint creates a newpoint struct, if x,y coordonates are empty then they will be treated as infinity
-func NewPoint(x string, y string, aa string, bb string) (*Point, error) {
+func NewPoint(x string, y string, aa string, bb string) (Point, error) {
 
 	var infx bool // boolean flag if x coordinate is infinity; true = infinity
 	var infy bool // boolean flag if y coordinate is infinity
@@ -36,24 +36,24 @@ func NewPoint(x string, y string, aa string, bb string) (*Point, error) {
 	b, _ := strconv.ParseFloat(bb, 64)
 
 	if x == "" || y == "" {
-		return &Point{a, b, 0, 0, true, true}, nil
+		return Point{a, b, 0, 0, true, true}, nil
 	}
 
 	// try parsing numeric string
 	tempx, er := strconv.ParseFloat(x, 64)
 	if er != nil {
-		return &Point{}, er
+		return Point{}, er
 	}
 
 	tempy, er := strconv.ParseFloat(y, 64)
 	if er != nil {
-		return &Point{}, er
+		return Point{}, er
 	}
 
 	// check if the given coordinates are on the curve
 	err := CheckIfOnCurve(a, b, tempx, tempy)
 	if err != nil {
-		return &Point{}, err
+		return Point{}, err
 	}
 
 	infx = false
@@ -68,7 +68,7 @@ func NewPoint(x string, y string, aa string, bb string) (*Point, error) {
 		infy: infy,
 	}
 
-	return &pnt, nil
+	return pnt, nil
 }
 
 // CheckIfOnCurve checks if the point is on the curve
@@ -112,12 +112,12 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	}
 
 	// Case 0.0: self is the point at infinity, return other
-	if !p.infx {
+	if p.infx {
 		return po, nil
 	}
 
 	// Case 0.1: other is the point at infinity, return self
-	if !po.infx {
+	if po.infx {
 		return p, nil
 	}
 
