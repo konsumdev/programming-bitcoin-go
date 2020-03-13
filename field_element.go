@@ -3,27 +3,25 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math"
+	"math/big"
 )
 
-type num float64
-type prime float64
+var zero = big.NewInt(0)
 
-// FieldElement is the struct representation of an element
+// FieldElement struct representation of a field element
 type FieldElement struct {
-	num   float64
-	prime float64
+	num   *big.Int
+	prime *big.Int
 }
 
-// print outputs the values
 func (f *FieldElement) print() {
 	fmt.Printf("(%.f, %.f)", f.num, f.prime)
 }
 
 // NewFieldElement returns new field element
-func NewFieldElement(num float64, prime float64) (FieldElement, error) {
+func NewFieldElement(num *big.Int, prime *big.Int) (FieldElement, error) {
 
-	if num >= prime || num < 0 {
+	if num.Cmp(prime) > 0 || num.Cmp(zero) == -1 {
 		return FieldElement{}, errors.New("Num not in field range of prime")
 	}
 
@@ -36,9 +34,9 @@ func NewFieldElement(num float64, prime float64) (FieldElement, error) {
 }
 
 // CheckField checks if the two elements are member of same field
-func CheckField(f float64, fe float64) bool {
+func CheckField(f *big.Int, fe *big.Int) bool {
 
-	if f == fe {
+	if f.Cmp(fe) == 1 {
 		return true
 	}
 
@@ -87,10 +85,13 @@ func (f *FieldElement) Add(fe FieldElement) (FieldElement, error) {
 		return FieldElement{}, errors.New("Not members of the same field")
 	}
 
-	var res = f.num + fe.num
-	var mod = math.Mod(res, f.prime)
+	var res, mod big.Int
+
+	res.Add(f.num, fe.num)
+	mod.Mod(&res, f.prime)
+
 	fld := FieldElement{
-		num:   mod,
+		num:   &mod,
 		prime: f.prime,
 	}
 
@@ -104,11 +105,13 @@ func (f *FieldElement) Sub(fe FieldElement) (FieldElement, error) {
 		return FieldElement{}, errors.New("Not members of same field")
 	}
 
-	var res = f.num - fe.num
-	var mod = math.Mod(res, f.prime)
+	var res, mod big.Int
+
+	res.Sub(f.num, fe.num)
+	mod.Mod(&res, f.prime)
 
 	fld := FieldElement{
-		num:   mod,
+		num:   &mod,
 		prime: f.prime,
 	}
 
@@ -122,11 +125,13 @@ func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
 		return FieldElement{}, errors.New("Not member of same field")
 	}
 
-	var res = f.num * fe.num
-	var mod = math.Mod(res, f.prime)
+	var res, mod big.Int
+
+	res.Mul(f.num, fe.num)
+	mod.Mod(&res, f.prime)
 
 	fld := FieldElement{
-		num:   mod,
+		num:   &mod,
 		prime: f.prime,
 	}
 
@@ -134,13 +139,15 @@ func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
 }
 
 // Pow returns the mod exponent of an element
-func (f *FieldElement) Pow(exp float64) (FieldElement, error) {
+func (f *FieldElement) Pow(exp int64) (FieldElement, error) {
 
-	var res = math.Pow(f.num, exp)
-	var mod = math.Mod(res, f.prime)
+	var res, mod big.Int
+	var e = big.NewInt(exp)
+
+	res.Exp(f.num, e, f.prime)
 
 	fld := FieldElement{
-		num:   mod,
+		num:   &mod,
 		prime: f.prime,
 	}
 
@@ -154,13 +161,15 @@ func (f *FieldElement) Div(fe FieldElement) (FieldElement, error) {
 		return FieldElement{}, errors.New("Not member of same field")
 	}
 
-	var ex = f.prime - 2
-	var pwr = math.Pow(fe.num, ex)
-	var res = f.num * pwr
-	var mod = math.Mod(res, f.prime)
+	var res, mod, ex, pwr big.Int
+
+	ex.Sub(f.prime, big.NewInt(2))
+	pwr.Exp(fe.num, &ex, nil)
+	res.Mul(f.num, &pwr)
+	mod.Mod(&res, f.prime)
 
 	fld := FieldElement{
-		num:   mod,
+		num:   &mod,
 		prime: f.prime,
 	}
 
