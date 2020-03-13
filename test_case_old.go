@@ -1,5 +1,8 @@
 package main
 
+/**
+TODO
+
 import (
 	"bufio"
 	"fmt"
@@ -8,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 )
+
+
 
 var clear map[string]func() //create a map for storing clear funcs
 
@@ -140,8 +145,7 @@ AskFurther:
 	defer prompt()
 }
 
-/**
-TODO
+
 
 // PerformFieldElement test module for finite fields
 func PerformFieldElement() {
