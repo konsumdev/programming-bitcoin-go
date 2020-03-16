@@ -77,3 +77,92 @@ func CheckSameCurve(p1 *Point, p2 *Point) error {
 
 	return nil
 }
+
+// IsEqual checks if two points are equal
+func (p *Point) IsEqual(po Point) bool {
+	return ((p.x == po.x) && (p.y == po.y)) && ((p.a == po.a) && (p.b == po.b))
+}
+
+// Add function performs point addition on two points
+func (p *Point) Add(po *Point) (*Point, error) {
+
+	// validate if the points to be added are on the same curve
+	err := CheckSameCurve(p, po)
+	if err != nil {
+		return &Point{}, err
+	}
+
+	// Case 0.0: self is the point at infinity, return other
+	if p.x.Cmp(zero) == 0 {
+		return po, nil
+	}
+
+	// Case 0.1: other is the point at infinity, return self
+	if po.x.Cmp(zero) == 0 {
+		return p, nil
+	}
+
+	// Case 1: self.x == other.x, self.y != other.y
+	// Result is point at infinity
+	if (p.x.Cmp(po.x) == 0) && (p.y.Cmp(po.y) != 0) {
+		return &Point{zero, zero, p.a, p.b}, nil
+	}
+
+	// Case 2: self.x ≠ other.x
+	// Formula (x3,y3)==(x1,y1)+(x2,y2)
+	// s=(y2-y1)/(x2-x1)
+	// x3=s**2-x1-x2
+	// y3=s*(x1-x3)-y1
+	if p.x != po.x {
+		var s1, s2, s, x, y big.Int
+
+		s1.Sub(po.y, p.y)
+		s2.Sub(po.x, p.x)
+		s.Div(&s1, &s2)
+
+		x.Exp(&s, big.NewInt(2), nil)
+		x.Sub(&x, p.x)
+		x.Sub(&x, po.x)
+
+		y.Sub(p.x, &x)
+		y.Mul(&s, &y)
+		y.Sub(&y, po.y)
+
+		return &Point{&x, &y, p.a, p.b}, nil
+	}
+
+	// Case 4: if we are tangent to the vertical line,
+	// we return the point at infinity
+	// note instead of figuring out what 0 is for each type
+	// we just use 0 * self.x
+	var rs big.Int
+	if (p.IsEqual(*po)) && (p.y == rs.Mul(p.x, zero)) {
+		return &Point{zero, zero, p.a, p.b}, nil
+	}
+
+	// Case 3: self == other
+	// Formula (x3,y3)=(x1,y1)+(x1,y1)
+	// s=(3*x1**2+a)/(2*y1)
+	// x3=s**2-2*x1
+	// y3=s*(x1-x3)-y1
+	if p == po {
+		var s, s1, s2, x3, y3 big.Int
+		s.Exp(&s, big.NewInt(2), nil)
+		s.Mul(&s, big.NewInt(3))
+		s.Add(&s, p.a)
+		s1.Mul(p.y, big.NewInt(2))
+		s.Div(&s, &s1)
+
+		x3.Mul(big.NewInt(2), p.x)
+		s2.Exp(&s, big.NewInt(2), nil)
+		x3.Sub(&s2, &x3)
+
+		y3.Sub(p.x, &x3)
+		y3.Mul(&s, &y3)
+		y3.Sub(&y3, p.y)
+
+		return &Point{&x3, &y3, p.a, p.b}, nil
+	}
+
+	return &Point{}, errors.New("Point addition exemption")
+}
