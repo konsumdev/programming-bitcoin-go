@@ -164,5 +164,17 @@ func (p *Point) Add(po *Point) (*Point, error) {
 		return &Point{&x3, &y3, p.a, p.b}, nil
 	}
 
+	// Throw exemption in case point does not fall into any of the conditions
 	return &Point{}, errors.New("Point addition exemption")
+}
+
+// RMul scalar multiplication of a point
+func (p *Point) RMul(coef int) (*Point, error) {
+	var prod Point
+	prod = *p
+	for i := 1; i <= coef; i++ {
+		prod.Add(p)
+	}
+
+	return &prod, nil
 }

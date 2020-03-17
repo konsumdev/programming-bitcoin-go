@@ -141,10 +141,12 @@ func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
 // Pow returns the mod exponent of an element
 func (f *FieldElement) Pow(exp int64) (FieldElement, error) {
 
-	var res, mod big.Int
+	var res, mod, n, fprime big.Int
 	var e = big.NewInt(exp)
+	fprime.Sub(f.prime, big.NewInt(1))
+	n.Mod(e, &fprime)
 
-	res.Exp(f.num, e, f.prime)
+	res.Exp(f.num, &n, f.prime)
 
 	fld := FieldElement{
 		num:   &mod,
