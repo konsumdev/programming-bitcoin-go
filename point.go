@@ -8,10 +8,10 @@ import (
 
 // Point is a struct representation of a point
 type Point struct {
-	x *big.Int
-	y *big.Int
-	a *big.Int
-	b *big.Int
+	x *FieldElement
+	y *FieldElement
+	a *FieldElement
+	b *FieldElement
 }
 
 func (p *Point) print() {
@@ -20,29 +20,48 @@ func (p *Point) print() {
 	x := p.x
 	y := p.y
 
-	fmt.Printf("(%.f, %.f)_%.f_%.f\n\n", x, y, a, b)
+	aa := a.num.String()
+	bb := b.num.String()
+	xx := x.num.String()
+	yy := y.num.String()
+
+	fmt.Printf("(%s, %s)_%s_%s\n", xx, yy, aa, bb)
 }
 
-// NewPoint init a new point
-func NewPoint(x *big.Int, y *big.Int, a *big.Int, b *big.Int) (Point, error) {
+// NewPoint inits a new field element point
+func NewPoint(x, y, a, b FieldElement) (Point, error) {
+	x.print()
+	if (x.num.Cmp(zero) == 0) || (y.num.Cmp(zero) == 0) {
+		fmt.Println("aaaa")
+		pnt := Point{
+			x: &x,
+			y: &y,
+			a: &a,
+			b: &b,
+		}
 
-	// First, check if provided coordinate is on the curve
-	err := CheckIfOnCurve(x, y, a, b)
-	if err != nil {
-		return Point{}, err
+		return pnt, nil
 	}
+
+	onCurve := CheckIfOnCurve(x.num, y.num, a.num, b.num)
+	if !onCurve {
+		return Point{}, errors.New("Point not on curve")
+	}
+
+	fmt.Println("vaaaa")
 
 	pnt := Point{
-		x: x,
-		y: y,
-		a: a,
-		b: b,
+		x: &x,
+		y: &y,
+		a: &a,
+		b: &b,
 	}
+
 	return pnt, nil
 }
 
 // CheckIfOnCurve checks if the point is on the curve
-func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int) error {
+func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int) bool {
 
 	// y2 = x3 + ax + b
 
@@ -52,16 +71,57 @@ func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int) error {
 
 	y2.Exp(y, e2, nil)
 	x3.Exp(x, e3, nil)
+
 	reEq.Mul(a, x)
+
 	reEq.Add(&reEq, &x3)
+
 	reEq.Add(&reEq, b)
 
-	if y2.Cmp(&reEq) != 0 {
-		return errors.New("Point is not on the curve")
+	res := y2.Cmp(&reEq)
+	if res != 0 {
+		return false
 	}
 
-	return nil
+	return true
 }
+
+// NewPoint_old init a new point
+// func NewPoint_old(xx, yy, aa, bb int64) (Point, error) {
+
+// 	x := big.NewInt(xx)
+// 	y := big.NewInt(yy)
+// 	a := big.NewInt(aa)
+// 	b := big.NewInt(bb)
+
+// 	if xx == 0 || yy == 0 {
+
+// 		pnt := Point{
+// 			x: x,
+// 			y: y,
+// 			a: a,
+// 			b: b,
+// 		}
+// 		return pnt, nil
+// 	}
+
+// 	// First, check if provided coordinate is on the curve
+// 	err := CheckIfOnCurve(x, y, a, b)
+// 	if err != nil {
+// 		return Point{}, err
+// 	}
+
+// 	pnt := Point{
+// 		x: x,
+// 		y: y,
+// 		a: a,
+// 		b: b,
+// 	}
+// 	return pnt, nil
+// }
+
+/*
+
 
 // CheckSameCurve evaluates if points are on the same curve(field)
 func CheckSameCurve(p1 *Point, p2 *Point) error {
@@ -178,3 +238,4 @@ func (p *Point) RMul(coef int) (*Point, error) {
 
 	return &prod, nil
 }
+*/

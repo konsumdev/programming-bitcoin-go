@@ -15,14 +15,20 @@ type FieldElement struct {
 }
 
 func (f *FieldElement) print() {
-	fmt.Printf("(%.f, %.f)", f.num, f.prime)
+	fnum := f.num.String()
+	fprime := f.prime.String()
+	fmt.Printf("(%s, %s)\n", fnum, fprime)
 }
 
 // NewFieldElement returns new field element
-func NewFieldElement(num *big.Int, prime *big.Int) (FieldElement, error) {
+func NewFieldElement(a int64, b int64) (FieldElement, error) {
 
-	if num.Cmp(prime) > 0 || num.Cmp(zero) == -1 {
-		return FieldElement{}, errors.New("Num not in field range of prime")
+	num := big.NewInt(a)
+	prime := big.NewInt(b)
+
+	if num.Cmp(prime) != 1 || num.Cmp(zero) == -1 {
+		resStr := fmt.Sprintf("%s not in field range of prime %s", num, prime)
+		return FieldElement{}, errors.New(resStr)
 	}
 
 	fe := FieldElement{
@@ -36,7 +42,8 @@ func NewFieldElement(num *big.Int, prime *big.Int) (FieldElement, error) {
 // CheckField checks if the two elements are member of same field
 func CheckField(f *big.Int, fe *big.Int) bool {
 
-	if f.Cmp(fe) == 1 {
+	// -1 < | 0 == | 1 >
+	if f.Cmp(fe) == 0 {
 		return true
 	}
 
@@ -50,11 +57,11 @@ func (f *FieldElement) IsEqual(fe FieldElement) (bool, error) {
 		num:   f.num,
 		prime: f.prime,
 	}
-	if CheckField(field.prime, fe.prime) {
-		return false, errors.New("Not member of same field")
+	if !CheckField(field.prime, fe.prime) {
+		return false, errors.New("Elements not member of same field")
 	}
 
-	if f.num != fe.num && f.prime == fe.prime {
+	if f.num.Cmp(fe.num) != 0 {
 		return false, nil
 	}
 
@@ -141,15 +148,16 @@ func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
 // Pow returns the mod exponent of an element
 func (f *FieldElement) Pow(exp int64) (FieldElement, error) {
 
-	var res, mod, n, fprime big.Int
+	var res, n, fprime big.Int
 	var e = big.NewInt(exp)
 	fprime.Sub(f.prime, big.NewInt(1))
 	n.Mod(e, &fprime)
 
-	res.Exp(f.num, &n, f.prime)
+	res.Exp(f.num, &n, nil)
+	res.Mod(&res, &fprime)
 
 	fld := FieldElement{
-		num:   &mod,
+		num:   &res,
 		prime: f.prime,
 	}
 
