@@ -7,6 +7,7 @@ import (
 )
 
 var zero = big.NewInt(0)
+var inf = big.NewInt(0)
 
 // FieldElement struct representation of a field element
 type FieldElement struct {
@@ -26,7 +27,15 @@ func NewFieldElement(a int64, b int64) (FieldElement, error) {
 	num := big.NewInt(a)
 	prime := big.NewInt(b)
 
-	if num.Cmp(prime) != 1 || num.Cmp(zero) == -1 {
+	//if num >= prime or num < 0
+	// -1 x < y
+	// 0 x == y
+	// 1 x > y
+	cmp := num.Cmp(prime)
+	cmpZ := num.Cmp(zero)
+
+	if cmp >= 0 || cmpZ == -1 {
+
 		resStr := fmt.Sprintf("%s not in field range of prime %s", num, prime)
 		return FieldElement{}, errors.New(resStr)
 	}
@@ -51,21 +60,13 @@ func CheckField(f *big.Int, fe *big.Int) bool {
 }
 
 // IsEqual checks if two field elemnts are equal
-func (f *FieldElement) IsEqual(fe FieldElement) (bool, error) {
+func (f *FieldElement) IsEqual(fe *FieldElement) bool {
 
-	var field = FieldElement{
-		num:   f.num,
-		prime: f.prime,
-	}
-	if !CheckField(field.prime, fe.prime) {
-		return false, errors.New("Elements not member of same field")
+	if f.num.Cmp(fe.num) == 0 {
+		return true
 	}
 
-	if f.num.Cmp(fe.num) != 0 {
-		return false, nil
-	}
-
-	return true, nil
+	return false
 }
 
 // IsNotEqual checks if two field elemnts are not equal
@@ -153,8 +154,8 @@ func (f *FieldElement) Pow(exp int64) (FieldElement, error) {
 	fprime.Sub(f.prime, big.NewInt(1))
 	n.Mod(e, &fprime)
 
-	res.Exp(f.num, &n, nil)
-	res.Mod(&res, &fprime)
+	res.Exp(f.num, &n, f.prime)
+	// res.Mod(&res, &fprime)
 
 	fld := FieldElement{
 		num:   &res,
@@ -171,11 +172,14 @@ func (f *FieldElement) Div(fe FieldElement) (FieldElement, error) {
 		return FieldElement{}, errors.New("Not member of same field")
 	}
 
-	var res, mod, ex, pwr big.Int
+	// num = (self.num * pow(other.num, self.prime - 2, self.prime)) % self.prime
+	var prime2, res, mod big.Int
 
-	ex.Sub(f.prime, big.NewInt(2))
-	pwr.Exp(fe.num, &ex, nil)
-	res.Mul(f.num, &pwr)
+	prime2.Sub(f.prime, big.NewInt(2))
+
+	res.Exp(fe.num, &prime2, f.prime)
+	res.Mul(&res, f.num)
+
 	mod.Mod(&res, f.prime)
 
 	fld := FieldElement{

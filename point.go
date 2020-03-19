@@ -14,6 +14,7 @@ type Point struct {
 	b *FieldElement
 }
 
+// PrintPoint outputs string representation of a point
 func (p *Point) print() {
 	a := p.a
 	b := p.b
@@ -24,15 +25,16 @@ func (p *Point) print() {
 	bb := b.num.String()
 	xx := x.num.String()
 	yy := y.num.String()
+	pr := a.prime.String()
 
-	fmt.Printf("(%s, %s)_%s_%s\n", xx, yy, aa, bb)
+	fmt.Printf("Point (%s, %s)_%s_%s FieldElement(%s)\n", xx, yy, aa, bb, pr)
 }
 
 // NewPoint inits a new field element point
 func NewPoint(x, y, a, b FieldElement) (Point, error) {
-	x.print()
+
 	if (x.num.Cmp(zero) == 0) || (y.num.Cmp(zero) == 0) {
-		fmt.Println("aaaa")
+
 		pnt := Point{
 			x: &x,
 			y: &y,
@@ -43,12 +45,16 @@ func NewPoint(x, y, a, b FieldElement) (Point, error) {
 		return pnt, nil
 	}
 
-	onCurve := CheckIfOnCurve(x.num, y.num, a.num, b.num)
+	onCurve := CheckIfOnCurve(x.num, y.num, a.num, b.num, a.prime)
 	if !onCurve {
-		return Point{}, errors.New("Point not on curve")
-	}
+		aa := a.num.String()
+		bb := b.num.String()
+		xx := x.num.String()
+		yy := y.num.String()
 
-	fmt.Println("vaaaa")
+		resStr := fmt.Sprintf("Point (%s, %s)_%s_%s is not on the curve", xx, yy, aa, bb)
+		return Point{}, errors.New(resStr)
+	}
 
 	pnt := Point{
 		x: &x,
@@ -61,24 +67,32 @@ func NewPoint(x, y, a, b FieldElement) (Point, error) {
 }
 
 // CheckIfOnCurve checks if the point is on the curve
-func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int) bool {
+func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int, prime *big.Int) bool {
 
 	// y2 = x3 + ax + b
+	// 18, 77
+	// 36864
+	// 456533 + 7
 
-	var y2, x3, reEq big.Int
+	var y2, x3, reEq, y2Mod, reEqMod big.Int
 	var e2 = big.NewInt(2)
 	var e3 = big.NewInt(3)
 
+	// y2
 	y2.Exp(y, e2, nil)
+	y2Mod.Mod(&y2, prime)
+
+	//x3
 	x3.Exp(x, e3, nil)
-
+	// a*x
 	reEq.Mul(a, x)
-
+	// x3 + ax
 	reEq.Add(&reEq, &x3)
-
+	// x3 + ax + b
 	reEq.Add(&reEq, b)
+	reEqMod.Mod(&reEq, prime)
 
-	res := y2.Cmp(&reEq)
+	res := y2Mod.Cmp(&reEqMod)
 	if res != 0 {
 		return false
 	}
@@ -86,86 +100,49 @@ func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int) bool {
 	return true
 }
 
-// NewPoint_old init a new point
-// func NewPoint_old(xx, yy, aa, bb int64) (Point, error) {
-
-// 	x := big.NewInt(xx)
-// 	y := big.NewInt(yy)
-// 	a := big.NewInt(aa)
-// 	b := big.NewInt(bb)
-
-// 	if xx == 0 || yy == 0 {
-
-// 		pnt := Point{
-// 			x: x,
-// 			y: y,
-// 			a: a,
-// 			b: b,
-// 		}
-// 		return pnt, nil
-// 	}
-
-// 	// First, check if provided coordinate is on the curve
-// 	err := CheckIfOnCurve(x, y, a, b)
-// 	if err != nil {
-// 		return Point{}, err
-// 	}
-
-// 	pnt := Point{
-// 		x: x,
-// 		y: y,
-// 		a: a,
-// 		b: b,
-// 	}
-// 	return pnt, nil
-// }
-
-/*
-
-
 // CheckSameCurve evaluates if points are on the same curve(field)
 func CheckSameCurve(p1 *Point, p2 *Point) error {
-	var p1a, p1b, p2a, p2b big.Int
-	p1a = *p1.a
-	p1b = *p1.b
-	p2a = *p2.a
-	p2b = *p2.b
+	// var p1a, p1b, p2a, p2b big.Int
+	p1a := p1.a
+	p1b := p1.b
+	p2a := p2.a
+	p2b := p2.b
 
-	if (p1a.Cmp(&p2a) != 0) || (p1b.Cmp(&p2b) != 0) {
+	if !p1a.IsEqual(p2a) || !p1b.IsEqual(p2b) {
 		return errors.New("Points are not on the same curve")
 	}
 
 	return nil
 }
 
-// IsEqual checks if two points are equal
-func (p *Point) IsEqual(po Point) bool {
-	return ((p.x == po.x) && (p.y == po.y)) && ((p.a == po.a) && (p.b == po.b))
-}
-
 // Add function performs point addition on two points
 func (p *Point) Add(po *Point) (*Point, error) {
 
 	// validate if the points to be added are on the same curve
-	err := CheckSameCurve(p, po)
-	if err != nil {
-		return &Point{}, err
+	isSameCurve := CheckSameCurve(p, po)
+	if isSameCurve != nil {
+		return &Point{}, isSameCurve
 	}
 
 	// Case 0.0: self is the point at infinity, return other
-	if p.x.Cmp(zero) == 0 {
+	if p.x.num.Cmp(inf) == 0 {
+		fmt.Println("case 0.0")
 		return po, nil
 	}
 
 	// Case 0.1: other is the point at infinity, return self
-	if po.x.Cmp(zero) == 0 {
+	if po.x.num.Cmp(inf) == 0 {
+		fmt.Println("case 0.1")
 		return p, nil
 	}
 
 	// Case 1: self.x == other.x, self.y != other.y
 	// Result is point at infinity
-	if (p.x.Cmp(po.x) == 0) && (p.y.Cmp(po.y) != 0) {
-		return &Point{zero, zero, p.a, p.b}, nil
+	if (p.x.num.Cmp(po.x.num) == 0) && (p.y.num.Cmp(po.y.num) != 0) {
+		fmt.Println("case 1")
+		infa, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
+		infb, _ := NewFieldElement(inf.Int64(), p.b.prime.Int64())
+		return &Point{&infa, &infb, p.a, p.b}, nil
 	}
 
 	// Case 2: self.x ≠ other.x
@@ -173,31 +150,23 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// s=(y2-y1)/(x2-x1)
 	// x3=s**2-x1-x2
 	// y3=s*(x1-x3)-y1
-	if p.x != po.x {
-		var s1, s2, s, x, y big.Int
+	if !p.x.IsEqual(po.x) {
 
-		s1.Sub(po.y, p.y)
-		s2.Sub(po.x, p.x)
-		s.Div(&s1, &s2)
+		ss1, _ := po.y.Sub(*p.y)
+		ss2, _ := po.x.Sub(*p.x)
 
-		x.Exp(&s, big.NewInt(2), nil)
-		x.Sub(&x, p.x)
-		x.Sub(&x, po.x)
+		sDiv, _ := ss1.Div(ss2)
 
-		y.Sub(p.x, &x)
-		y.Mul(&s, &y)
-		y.Sub(&y, po.y)
+		x3, _ := sDiv.Pow(2)
+		x3, _ = x3.Sub(*p.x)
+		x3, _ = x3.Sub(*po.x)
 
-		return &Point{&x, &y, p.a, p.b}, nil
-	}
+		y, _ := p.x.Sub(x3)
+		y, _ = sDiv.Mul(y)
+		y, _ = y.Sub(*p.y)
 
-	// Case 4: if we are tangent to the vertical line,
-	// we return the point at infinity
-	// note instead of figuring out what 0 is for each type
-	// we just use 0 * self.x
-	var rs big.Int
-	if (p.IsEqual(*po)) && (p.y == rs.Mul(p.x, zero)) {
-		return &Point{zero, zero, p.a, p.b}, nil
+		return &Point{&x3, &y, p.a, p.b}, nil
+
 	}
 
 	// Case 3: self == other
@@ -205,37 +174,60 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// s=(3*x1**2+a)/(2*y1)
 	// x3=s**2-2*x1
 	// y3=s*(x1-x3)-y1
-	if p == po {
-		var s, s1, s2, x3, y3 big.Int
-		s.Exp(&s, big.NewInt(2), nil)
-		s.Mul(&s, big.NewInt(3))
-		s.Add(&s, p.a)
-		s1.Mul(p.y, big.NewInt(2))
-		s.Div(&s, &s1)
+	if p.IsEqual(*po) {
+		fmt.Println("case 3")
+		var s, sA, sB, s2, x3, y3, x12 big.Int
+		// (3*x1**2+a)
+		x12.Exp(p.x.num, big.NewInt(2), nil)
+		sA.Mul(&x12, big.NewInt(3))
+		sA.Add(&sA, p.a.num)
 
-		x3.Mul(big.NewInt(2), p.x)
-		s2.Exp(&s, big.NewInt(2), nil)
+		// (2*y1)
+		sB.Mul(p.y.num, big.NewInt(2))
+
+		// s=(3*x1**2+a)/(2*y1)
+		s.Div(&sA, &sB)
+
+		//x3=s**2-2*x1
+		s2.Exp(&s, big.NewInt(2), nil) // s**2
+		x3.Mul(big.NewInt(2), p.y.num)
 		x3.Sub(&s2, &x3)
 
-		y3.Sub(p.x, &x3)
+		// y3=s*(x1-x3)-y1
+		y3.Sub(p.x.num, &x3)
 		y3.Mul(&s, &y3)
-		y3.Sub(&y3, p.y)
+		y3.Sub(&y3, p.y.num)
 
-		return &Point{&x3, &y3, p.a, p.b}, nil
+		x, _ := NewFieldElement(x3.Int64(), p.x.prime.Int64())
+		y, _ := NewFieldElement(y3.Int64(), p.y.prime.Int64())
+
+		newP, _ := NewPoint(x, y, *p.a, *p.b)
+		return &newP, nil
+	}
+
+	// Case 4: if we are tangent to the vertical line,
+	// we return the point at infinity
+	// note instead of figuring out what 0 is for each type
+	// we just use 0 * self.x
+	// if self == other and self.y == 0 * self.x
+	// 0 * self.x is 0
+	if (p.IsEqual(*po)) && (p.y.num.Cmp(zero) == 0) {
+		fmt.Println("case 4")
+		infa, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
+		infb, _ := NewFieldElement(inf.Int64(), p.b.prime.Int64())
+		return &Point{&infa, &infb, p.a, p.b}, nil
 	}
 
 	// Throw exemption in case point does not fall into any of the conditions
-	return &Point{}, errors.New("Point addition exemption")
+	return &Point{}, errors.New("Point addition exemption: no condition fulfilled")
 }
 
-// RMul scalar multiplication of a point
-func (p *Point) RMul(coef int) (*Point, error) {
-	var prod Point
-	prod = *p
-	for i := 1; i <= coef; i++ {
-		prod.Add(p)
+// IsEqual checks if two points are equal
+func (p *Point) IsEqual(po Point) bool {
+
+	if !p.x.IsEqual(po.x) || !p.y.IsEqual(po.y) || !p.a.IsEqual(po.a) || !p.b.IsEqual(po.b) {
+		return false
 	}
 
-	return &prod, nil
+	return true
 }
-*/
