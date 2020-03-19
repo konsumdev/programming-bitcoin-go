@@ -1,25 +1,70 @@
 package main
 
+import (
+	"math"
+)
+
 // S256Point struct representation of s256 point
 type S256Point struct {
-	p *Point
+	p Point
 }
+
+// A variable
+var A = 0
+
+// B variable
+var B = 7
 
 // NewS256Point init a new s256 point
 func NewS256Point(x, y int64) (S256Point, error) {
 
-	// s_a, _ := NewS256Field(a, zero)
-	// s_b, _ := NewS256Field(b, zero)
+	a, _ := NewS256Field(int64(A))
+	b, _ := NewS256Field(int64(B))
 
-	// a := big.NewInt(0)
-	// b := big.NewInt(0)
+	if x == 0 || y == 0 {
+		x, _ := NewS256Field(inf.Int64())
+		y, _ := NewS256Field(inf.Int64())
+		NewP, _ := NewPoint(x.f, y.f, a.f, b.f)
+		newSP := S256Point{NewP}
+		return newSP, nil
+	}
 
-	// p, err := NewPoint(x, y, 0, 0)
-	// if err != nil {
-	// return S256Point{}, err
-	// }
+	xx, _ := NewS256Field(x)
+	yy, _ := NewS256Field(y)
+	NewP, _ := NewPoint(xx.f, yy.f, a.f, b.f)
+	newSP := S256Point{NewP}
+	return newSP, nil
+}
 
-	fld := S256Point{}
+// S256RMul redux mul for s256
+func (sp *S256Point) S256RMul(coef int) *S256Point {
+	var N float64
+	N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
 
-	return fld, nil
+	cf := math.Mod(float64(coef), N)
+
+	r := sp.p.rMul(int(cf))
+	r256 := S256Point{*r}
+	return &r256
+}
+
+// s_inv = pow(sig.s, N - 2, N)  # <1>
+// u = z * s_inv % N  # <2>
+// v = sig.r * s_inv % N  # <3>
+// total = u * G + v * self  # <4>
+// return total.x.num == sig.r  # <5>
+func verify(sp *S256Point, z *S256Point, sig *Signature, G *S256Point) bool {
+
+	n2 := N / float64(2)
+	sInv := math.Pow(sig.s, n2)
+	sInvF, _ := NewS256Field(int64(sInv))
+	u, _ := z.p.x.Mul(sInvF.f)
+	sigRF, _ := NewS256Field(int64(sig.r))
+	v, _ := sInvF.f.Mul(sigRF.f)
+
+	total, _ := u.Mul(*G.p.x)
+	total1, _ := v.Mul(*sp.p.x)
+	total, _ = total.Add(total1)
+
+	return total.num.Int64() == int64(sig.r)
 }

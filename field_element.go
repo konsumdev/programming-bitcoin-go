@@ -18,7 +18,7 @@ type FieldElement struct {
 func (f *FieldElement) print() {
 	fnum := f.num.String()
 	fprime := f.prime.String()
-	fmt.Printf("(%s, %s)\n", fnum, fprime)
+	fmt.Printf("FieldElement_%s(%s)\n", fprime, fnum)
 }
 
 // NewFieldElement returns new field element

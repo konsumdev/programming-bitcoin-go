@@ -27,6 +27,11 @@ func (p *Point) print() {
 	yy := y.num.String()
 	pr := a.prime.String()
 
+	if xx == "0" || yy == "0" {
+		fmt.Println("Point(infinity)")
+		return
+	}
+
 	fmt.Printf("Point (%s, %s)_%s_%s FieldElement(%s)\n", xx, yy, aa, bb, pr)
 }
 
@@ -126,20 +131,20 @@ func (p *Point) Add(po *Point) (*Point, error) {
 
 	// Case 0.0: self is the point at infinity, return other
 	if p.x.num.Cmp(inf) == 0 {
-		fmt.Println("case 0.0")
+
 		return po, nil
 	}
 
 	// Case 0.1: other is the point at infinity, return self
 	if po.x.num.Cmp(inf) == 0 {
-		fmt.Println("case 0.1")
+
 		return p, nil
 	}
 
 	// Case 1: self.x == other.x, self.y != other.y
 	// Result is point at infinity
 	if (p.x.num.Cmp(po.x.num) == 0) && (p.y.num.Cmp(po.y.num) != 0) {
-		fmt.Println("case 1")
+
 		infa, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
 		infb, _ := NewFieldElement(inf.Int64(), p.b.prime.Int64())
 		return &Point{&infa, &infb, p.a, p.b}, nil
@@ -171,38 +176,30 @@ func (p *Point) Add(po *Point) (*Point, error) {
 
 	// Case 3: self == other
 	// Formula (x3,y3)=(x1,y1)+(x1,y1)
-	// s=(3*x1**2+a)/(2*y1)
-	// x3=s**2-2*x1
-	// y3=s*(x1-x3)-y1
+	// s = (3 * x1**2 + a) / (2 * y1)
+	// x3 = s**2 - 2 * x1
+	// y3 = s * (x1 - x3) - y1
 	if p.IsEqual(*po) {
-		fmt.Println("case 3")
-		var s, sA, sB, s2, x3, y3, x12 big.Int
-		// (3*x1**2+a)
-		x12.Exp(p.x.num, big.NewInt(2), nil)
-		sA.Mul(&x12, big.NewInt(3))
-		sA.Add(&sA, p.a.num)
 
-		// (2*y1)
-		sB.Mul(p.y.num, big.NewInt(2))
+		x12, _ := p.x.Pow(2)
+		fe3, _ := NewFieldElement(3, p.a.prime.Int64())
+		sNom, _ := x12.Mul(fe3)
+		sNom, _ = sNom.Add(*p.a)
 
-		// s=(3*x1**2+a)/(2*y1)
-		s.Div(&sA, &sB)
+		fe2, _ := NewFieldElement(2, p.a.prime.Int64())
+		sDom, _ := p.y.Mul(fe2)
 
-		//x3=s**2-2*x1
-		s2.Exp(&s, big.NewInt(2), nil) // s**2
-		x3.Mul(big.NewInt(2), p.y.num)
-		x3.Sub(&s2, &x3)
+		sDiv, _ := sNom.Div(sDom)
 
-		// y3=s*(x1-x3)-y1
-		y3.Sub(p.x.num, &x3)
-		y3.Mul(&s, &y3)
-		y3.Sub(&y3, p.y.num)
+		x3, _ := sDiv.Pow(2)
+		xx, _ := p.x.Mul(fe2)
+		x3, _ = x3.Sub(xx)
 
-		x, _ := NewFieldElement(x3.Int64(), p.x.prime.Int64())
-		y, _ := NewFieldElement(y3.Int64(), p.y.prime.Int64())
+		y, _ := p.x.Sub(x3)
+		y, _ = sDiv.Mul(y)
+		y, _ = y.Sub(*p.y)
 
-		newP, _ := NewPoint(x, y, *p.a, *p.b)
-		return &newP, nil
+		return &Point{&x3, &y, p.a, p.b}, nil
 	}
 
 	// Case 4: if we are tangent to the vertical line,
@@ -212,7 +209,7 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// if self == other and self.y == 0 * self.x
 	// 0 * self.x is 0
 	if (p.IsEqual(*po)) && (p.y.num.Cmp(zero) == 0) {
-		fmt.Println("case 4")
+
 		infa, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
 		infb, _ := NewFieldElement(inf.Int64(), p.b.prime.Int64())
 		return &Point{&infa, &infb, p.a, p.b}, nil
@@ -230,4 +227,46 @@ func (p *Point) IsEqual(po Point) bool {
 	}
 
 	return true
+}
+
+// def __rmul__(self, coefficient):
+// 	coef = coefficient
+// 	current = self  # <1>
+// 	result = self.__class__(None, None, self.a, self.b)  # <2>
+// 	while coef:
+// 		if coef & 1:  # <3>
+// 			result += current
+// 		current += current  # <4>
+// 		coef >>= 1  # <5>
+// 	return result
+
+func (p *Point) rMul(coef int) *Point {
+	current := &p
+
+	infx, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
+	newPoint, _ := NewPoint(infx, infx, *p.a, *p.b) // init to infinity
+	result := &newPoint
+
+	// return inf if coef is 0 or below
+	if coef < 1 {
+		return result
+	}
+
+	result = *current
+
+	// return self if coef is 1
+	if coef == 1 {
+		return result
+	}
+
+	i := 1
+	p1 := &p
+
+	for i < coef {
+		p2, _ := p.Add(*p1)
+		p1 = &p2
+		i++
+	}
+
+	return *p1
 }
