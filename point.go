@@ -241,7 +241,7 @@ func (p *Point) IsEqual(po Point) bool {
 // 	return result
 
 func (p *Point) rMul(coef int) *Point {
-	current := &p
+	current := p
 
 	infx, _ := NewFieldElement(*inf, *p.a.prime)
 	newPoint, _ := NewPoint(infx, infx, *p.a, *p.b) // init to infinity
@@ -252,21 +252,25 @@ func (p *Point) rMul(coef int) *Point {
 		return result
 	}
 
-	result = *current
+	result = current
 
 	// return self if coef is 1
 	if coef == 1 {
 		return result
 	}
 
-	i := 1
-	p1 := &p
+BitShift:
+	for {
+		if (coef & 1) == 1 {
+			result, _ = result.Add(current)
+		}
+		current, _ = current.Add(current)
+		coef = coef >> 1
+		if (coef) <= 0 {
+			break BitShift
+		}
 
-	for i < coef {
-		p2, _ := p.Add(*p1)
-		p1 = &p2
-		i++
 	}
 
-	return *p1
+	return result
 }
