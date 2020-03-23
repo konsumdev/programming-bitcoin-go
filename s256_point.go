@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"math/big"
 )
 
 // S256Point struct representation of s256 point
@@ -16,14 +17,17 @@ var A = 0
 var B = 7
 
 // NewS256Point init a new s256 point
-func NewS256Point(x, y int64) (S256Point, error) {
+func NewS256Point(x, y big.Int) (S256Point, error) {
 
-	a, _ := NewS256Field(int64(A))
-	b, _ := NewS256Field(int64(B))
+	a, _ := NewS256Field(*big.NewInt(int64(A)))
+	b, _ := NewS256Field(*big.NewInt(int64(B)))
 
-	if x == 0 || y == 0 {
-		x, _ := NewS256Field(inf.Int64())
-		y, _ := NewS256Field(inf.Int64())
+	cmp := x.Cmp(zero)
+	cmpZ := y.Cmp(zero)
+
+	if cmp == 0 || cmpZ == 0 {
+		x, _ := NewS256Field(*inf)
+		y, _ := NewS256Field(*inf)
 		NewP, _ := NewPoint(x.f, y.f, a.f, b.f)
 		newSP := S256Point{NewP}
 		return newSP, nil
@@ -57,9 +61,9 @@ func verify(sp *S256Point, z *S256Point, sig *Signature, G *S256Point) bool {
 
 	n2 := N / float64(2)
 	sInv := math.Pow(sig.s, n2)
-	sInvF, _ := NewS256Field(int64(sInv))
+	sInvF, _ := NewS256Field(*big.NewInt(int64(sInv)))
 	u, _ := z.p.x.Mul(sInvF.f)
-	sigRF, _ := NewS256Field(int64(sig.r))
+	sigRF, _ := NewS256Field(*big.NewInt(int64(sig.r)))
 	v, _ := sInvF.f.Mul(sigRF.f)
 
 	total, _ := u.Mul(*G.p.x)

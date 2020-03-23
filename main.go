@@ -2,32 +2,33 @@ package main
 
 import (
 	"fmt"
+	"math/big"
 )
 
 // this is the main
 func main() {
-	testpointadd()
+	test1()
 }
 
 func testRMul() {
-	var prime int64
-	prime = 223
-	a, erA := NewFieldElement(0, prime)
+
+	prime := big.NewInt(223)
+	a, erA := NewFieldElement(*big.NewInt(0), *prime)
 	if erA != nil {
 		fmt.Println(erA)
 		return
 	}
-	b, erB := NewFieldElement(7, prime)
+	b, erB := NewFieldElement(*big.NewInt(7), *prime)
 	if erB != nil {
 		fmt.Println(erB)
 		return
 	}
-	x1, erX1 := NewFieldElement(15, prime)
+	x1, erX1 := NewFieldElement(*big.NewInt(15), *prime)
 	if erX1 != nil {
 		fmt.Println(erX1)
 		return
 	}
-	y1, erY1 := NewFieldElement(86, prime)
+	y1, erY1 := NewFieldElement(*big.NewInt(86), *prime)
 	if erY1 != nil {
 		fmt.Println(erY1)
 		return
@@ -46,26 +47,25 @@ func testRMul() {
 }
 
 func testSub() {
-	var prime int64
-	prime = 223
-	a, erA := NewFieldElement(139, prime)
+	prime := big.NewInt(223)
+	a, erA := NewFieldElement(*big.NewInt(139), *prime)
 	if erA != nil {
 		fmt.Println(erA)
 		return
 	}
-	b, erB := NewFieldElement(142, prime)
+	b, erB := NewFieldElement(*big.NewInt(142), *prime)
 	if erB != nil {
 		fmt.Println(erB)
 		return
 	}
+	fmt.Printf("%d - %d = ", 139, 142)
 	c, _ := a.Sub(b)
 	c.print()
 }
 
 func testPow() {
-	var prime int64
-	prime = 19
-	a, erA := NewFieldElement(7, prime)
+	prime := big.NewInt(19)
+	a, erA := NewFieldElement(*big.NewInt(7), *prime)
 	if erA != nil {
 		fmt.Println(erA)
 		return
@@ -75,14 +75,13 @@ func testPow() {
 }
 
 func testDiv() {
-	var prime int64
-	prime = 223
-	a, erA := NewFieldElement(220, prime)
+	prime := big.NewInt(19)
+	a, erA := NewFieldElement(*big.NewInt(220), *prime)
 	if erA != nil {
 		fmt.Println(erA)
 		return
 	}
-	b, erB := NewFieldElement(113, prime)
+	b, erB := NewFieldElement(*big.NewInt(113), *prime)
 	if erB != nil {
 		fmt.Println(erB)
 		return
@@ -93,24 +92,23 @@ func testDiv() {
 
 // test point add
 func testpointadd() {
-	var prime int64
-	prime = 223
-	a, erA := NewFieldElement(0, prime)
+	prime := big.NewInt(223)
+	a, erA := NewFieldElement(*big.NewInt(0), *prime)
 	if erA != nil {
 		fmt.Println(erA)
 		return
 	}
-	b, erB := NewFieldElement(7, prime)
+	b, erB := NewFieldElement(*big.NewInt(7), *prime)
 	if erB != nil {
 		fmt.Println(erB)
 		return
 	}
-	x1, erX1 := NewFieldElement(15, prime)
+	x1, erX1 := NewFieldElement(*big.NewInt(15), *prime)
 	if erX1 != nil {
 		fmt.Println(erX1)
 		return
 	}
-	y1, erY1 := NewFieldElement(86, prime)
+	y1, erY1 := NewFieldElement(*big.NewInt(86), *prime)
 	if erY1 != nil {
 		fmt.Println(erY1)
 		return
@@ -170,8 +168,9 @@ func testpointadd() {
 
 // test field multiplication
 func test1() {
-	a, _ := NewFieldElement(2, 223)
-	b, _ := NewFieldElement(3, 223)
+	prime := big.NewInt(223)
+	a, _ := NewFieldElement(*big.NewInt(2), *prime)
+	b, _ := NewFieldElement(*big.NewInt(3), *prime)
 	// c, _ := NewFieldElement(10, 13)
 
 	d, _ := a.Mul(b)
@@ -182,7 +181,7 @@ func test1() {
 
 // test field exponentation
 func test2() {
-	var a, _ = NewFieldElement(3, 13)
+	var a, _ = NewFieldElement(*big.NewInt(3), *big.NewInt(13))
 
 	d, err := a.Pow(-3)
 	if err != nil {
@@ -195,16 +194,15 @@ func test2() {
 
 // test point exist on curve
 func test3() {
-	var prime int64
-	prime = 223 // placeholder
-	a, _ := NewFieldElement(5, prime)
-	b, _ := NewFieldElement(7, prime)
-	x1, er := NewFieldElement(5, prime)
+	prime := big.NewInt(223)
+	a, _ := NewFieldElement(*big.NewInt(5), *prime)
+	b, _ := NewFieldElement(*big.NewInt(7), *prime)
+	x1, er := NewFieldElement(*big.NewInt(5), *prime)
 	if er != nil {
 		fmt.Println(er)
 		return
 	}
-	y1, er := NewFieldElement(7, prime)
+	y1, er := NewFieldElement(*big.NewInt(7), *prime)
 	if er != nil {
 		fmt.Println(er)
 		return

@@ -145,8 +145,8 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// Result is point at infinity
 	if (p.x.num.Cmp(po.x.num) == 0) && (p.y.num.Cmp(po.y.num) != 0) {
 
-		infa, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
-		infb, _ := NewFieldElement(inf.Int64(), p.b.prime.Int64())
+		infa, _ := NewFieldElement(*inf, *p.a.prime)
+		infb, _ := NewFieldElement(*inf, *p.b.prime)
 		return &Point{&infa, &infb, p.a, p.b}, nil
 	}
 
@@ -182,11 +182,11 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	if p.IsEqual(*po) {
 
 		x12, _ := p.x.Pow(2)
-		fe3, _ := NewFieldElement(3, p.a.prime.Int64())
+		fe3, _ := NewFieldElement(*big.NewInt(3), *p.a.prime)
 		sNom, _ := x12.Mul(fe3)
 		sNom, _ = sNom.Add(*p.a)
 
-		fe2, _ := NewFieldElement(2, p.a.prime.Int64())
+		fe2, _ := NewFieldElement(*big.NewInt(2), *p.a.prime)
 		sDom, _ := p.y.Mul(fe2)
 
 		sDiv, _ := sNom.Div(sDom)
@@ -210,8 +210,8 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// 0 * self.x is 0
 	if (p.IsEqual(*po)) && (p.y.num.Cmp(zero) == 0) {
 
-		infa, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
-		infb, _ := NewFieldElement(inf.Int64(), p.b.prime.Int64())
+		infa, _ := NewFieldElement(*inf, *p.a.prime)
+		infb, _ := NewFieldElement(*inf, *p.b.prime)
 		return &Point{&infa, &infb, p.a, p.b}, nil
 	}
 
@@ -243,7 +243,7 @@ func (p *Point) IsEqual(po Point) bool {
 func (p *Point) rMul(coef int) *Point {
 	current := &p
 
-	infx, _ := NewFieldElement(inf.Int64(), p.a.prime.Int64())
+	infx, _ := NewFieldElement(*inf, *p.a.prime)
 	newPoint, _ := NewPoint(infx, infx, *p.a, *p.b) // init to infinity
 	result := &newPoint
 

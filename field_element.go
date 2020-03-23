@@ -22,27 +22,27 @@ func (f *FieldElement) print() {
 }
 
 // NewFieldElement returns new field element
-func NewFieldElement(a int64, b int64) (FieldElement, error) {
+func NewFieldElement(num big.Int, prime big.Int) (FieldElement, error) {
 
-	num := big.NewInt(a)
-	prime := big.NewInt(b)
+	// num := big.NewInt(a)
+	// prime := big.NewInt(b)
 
 	//if num >= prime or num < 0
 	// -1 x < y
 	// 0 x == y
 	// 1 x > y
-	cmp := num.Cmp(prime)
+	cmp := num.Cmp(&prime)
 	cmpZ := num.Cmp(zero)
 
 	if cmp >= 0 || cmpZ == -1 {
 
-		resStr := fmt.Sprintf("%s not in field range of prime %s", num, prime)
+		resStr := fmt.Sprintf("%s not in field range of prime %s", num.String(), prime.String())
 		return FieldElement{}, errors.New(resStr)
 	}
 
 	fe := FieldElement{
-		num:   num,
-		prime: prime,
+		num:   &num,
+		prime: &prime,
 	}
 
 	return fe, nil

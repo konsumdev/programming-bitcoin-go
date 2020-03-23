@@ -8,9 +8,9 @@ type S256Field struct {
 }
 
 // NewS256Field initialize new s256 field
-func NewS256Field(num int64) (S256Field, error) {
+func NewS256Field(num big.Int) (S256Field, error) {
 	prime := pValue()
-	fe, err := NewFieldElement(num, prime.Int64())
+	fe, err := NewFieldElement(num, prime)
 	if err != nil {
 		return S256Field{}, err
 	}
