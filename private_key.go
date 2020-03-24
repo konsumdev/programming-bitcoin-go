@@ -1,45 +1,62 @@
 package main
 
+import (
+	"crypto/rand"
+	"math/big"
+)
+
 // PrivateKey a truct representation of a private key
 type PrivateKey struct {
-	secret S256Point
-	point  S256Point
+	secret *S256Point
+	point  *S256Point
 }
 
 // NewPrivateKey inits a new private key
-func NewPrivateKey(sec *Point, G *Point) PrivateKey {
+func NewPrivateKey(secret *Point) PrivateKey {
 
 	privK := PrivateKey{
-		secret: S256Point{*sec},
-		point:  S256Point{*G},
+		secret: &S256Point{secret},
+		point:  gValue(),
 	}
 
 	return privK
 }
 
-func sign(pk *PrivateKey, z *S256Point, G *S256Point) Signature {
+func (pk *PrivateKey) sign(z *big.Int) Signature {
+	var kInv, sFinal big.Int
+	n := hexToBigInt(N)
+	nField := NewFieldElement(*n)
 
-	// k := pk.deterministicK(z)
-	// r, _ := k.point.p.x.Mul(*G.p.x)
-	// kInv, _ := pk.point.p.x.Pow(k.point.p.x.num.Int64())
+	nMinTwo := nField.Sub(*NewFieldElement(*big.NewInt(2)))
 
-	// s, _ := r.Mul(*pk.secret.p.x)
-	// s1, _ := z.p.x.Add(s)
-	// s2, _ := s1.Add(kInv)
-	// s3 := math.Mod(float64(s2.num.Int64()), N)
+	G := gValue()
+	k := pk.deterministicK(z)
+	r := k.point.S256RMul(*G.point.x.num)
+	kInv.Exp(k.point.point.x.num, nMinTwo.num, n)
 
-	// n2 := N / float64(2)
-	// if s3 > n2 {
-	// 	s3 = N - s3
-	// }
+	zField := NewFieldElement(*z)
+	s, _ := zField.Add(*r.point.x)
+	sPoint := pk.secret.S256RMul(*s.num)
+	sPoint = sPoint.S256RMul(kInv)
 
-	// return Signature{float64(r.num.Int64()), s3}
+	sFinal.Mod(sPoint.point.x.num, n)
 
-	return Signature{}
+	nDiv := nField.Div(*NewFieldElement(*big.NewInt(2)))
+
+	if sFinal.Cmp(nDiv.num) == 1 {
+		sRet := nField.Sub(*NewFieldElement(sFinal))
+		sFinal = *sRet.num
+	}
+
+	return Signature{r.point.x.num, &sFinal}
 }
 
 // TO DO, should return a digest - hash sha256
 // deterministicK unique k
-func (pk *PrivateKey) deterministicK(z *S256Point) PrivateKey {
-	return PrivateKey{}
+func (pk *PrivateKey) deterministicK(z *big.Int) PrivateKey {
+
+	// Generate cryptographically strong pseudo-random between 0 - z
+	rNum, _ := rand.Int(rand.Reader, z)
+	rPoint := NewPoint(*rNum, *rNum)
+	return NewPrivateKey(&rPoint)
 }

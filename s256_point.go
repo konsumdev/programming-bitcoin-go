@@ -6,7 +6,7 @@ import (
 
 // S256Point struct representation of s256 point
 type S256Point struct {
-	p Point
+	point *Point
 }
 
 // N we'll use the string representation for the hex value of N
@@ -26,12 +26,12 @@ func NewS256Point(x, y big.Int) S256Point {
 
 	if cmp == 0 || cmpZ == 0 {
 		NewP := NewPoint(*inf, *inf)
-		newSP := S256Point{NewP}
+		newSP := S256Point{&NewP}
 		return newSP
 	}
 
 	NewP := NewPoint(x, y)
-	newSP := S256Point{NewP}
+	newSP := S256Point{&NewP}
 	return newSP
 }
 
@@ -44,38 +44,49 @@ func (sp *S256Point) S256RMul(coef big.Int) *S256Point {
 	var cf big.Int
 	cf.Mod(&coef, decByte)
 
-	res := sp.p.rMul(cf)
+	res := sp.point.rMul(cf)
 
-	r256 := S256Point{*res}
+	r256 := S256Point{res}
 	return &r256
 }
 
 // verify function validate signature
-// s_inv = pow(sig.s, N - 2, N)  # <1>
-// u = z * s_inv % N  # <2>
-// v = sig.r * s_inv % N  # <3>
-// total = u * G + v * self  # <4>
-// return total.x.num == sig.r  # <5>
+/**
+s_inv = pow(sig.s, N - 2, N)  # <1>
+u = z * s_inv % N  # <2>
+v = sig.r * s_inv % N  # <3>
+total = u * G + v * self  # <4>
+return total.x.num == sig.r  # <5>
+*/
 func (sp *S256Point) verify(z, s, r *big.Int) bool {
-	var nMinTwo, sInv, zsInv, rsInv, u, v, total, total1, total2 big.Int
+	// var nMinTwo, zsInv, u FieldElement
+	var sInv, u, v big.Int
+
+	zField := NewFieldElement(*z)
+	rField := NewFieldElement(*r)
 
 	n := hexToBigInt(N)
-	nMinTwo.Sub(n, big.NewInt(2))
+	nField := NewFieldElement(*n)
 
-	sInv.Exp(s, &nMinTwo, n)
-	zsInv.Mul(&sInv, z)
-	u.Mod(&zsInv, n)
+	nMinTwo := nField.Sub(*NewFieldElement(*big.NewInt(2)))
 
-	rsInv.Mul(&sInv, r)
-	v.Mod(&rsInv, n)
+	sInv.Exp(s, nMinTwo.num, n)
+	sInvField := NewFieldElement(sInv)
+	zsInv := sInvField.Mul(*zField)
+	u.Mod(zsInv.num, n)
+
+	rsInv := sInvField.Mul(*rField)
+	v.Mod(rsInv.num, n)
 
 	G := gValue()
 
-	total2.Mul(&u, G.p.x.num)
-	total1.Mul(&v, sp.p.x.num)
-	total.Add(&total2, &total1)
+	total2 := G.S256RMul(u)
+	total1 := sp.S256RMul(v)
 
-	return total.Cmp(r) == 0
+	res := total2.point.Add(total1.point)
+
+	return res.x.num.Cmp(r) == 0
+
 }
 
 func gValue() *S256Point {

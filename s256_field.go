@@ -6,7 +6,7 @@ import (
 
 // S256Field is a struct representation of an s256 field element
 type S256Field struct {
-	f *FieldElement
+	field *FieldElement
 }
 
 // NewS256Field initialize new s256 field

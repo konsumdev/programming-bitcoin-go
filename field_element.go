@@ -106,10 +106,10 @@ func (f *FieldElement) Add(fe FieldElement) (FieldElement, error) {
 }
 
 // Sub returns the mod subtraction of two fields
-func (f *FieldElement) Sub(fe FieldElement) (FieldElement, error) {
+func (f *FieldElement) Sub(fe FieldElement) FieldElement {
 
 	if !CheckField(f.prime, fe.prime) {
-		return FieldElement{}, errors.New("Not members of same field")
+		panic("Not members of same field")
 	}
 
 	var res, mod big.Int
@@ -122,14 +122,14 @@ func (f *FieldElement) Sub(fe FieldElement) (FieldElement, error) {
 		prime: f.prime,
 	}
 
-	return fld, nil
+	return fld
 }
 
 // Mul returns the mod multiplication of two fields
-func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
+func (f *FieldElement) Mul(fe FieldElement) FieldElement {
 
 	if !CheckField(f.prime, fe.prime) {
-		return FieldElement{}, errors.New("Not member of same field")
+		panic("Not member of same field")
 	}
 
 	var res, mod big.Int
@@ -142,11 +142,11 @@ func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
 		prime: f.prime,
 	}
 
-	return fld, nil
+	return fld
 }
 
 // Pow returns the mod exponent of an element
-func (f *FieldElement) Pow(exp big.Int) (FieldElement, error) {
+func (f *FieldElement) Pow(exp big.Int) FieldElement {
 
 	var res, n, fprime big.Int
 	// var e = big.NewInt(exp)
@@ -161,14 +161,14 @@ func (f *FieldElement) Pow(exp big.Int) (FieldElement, error) {
 		prime: f.prime,
 	}
 
-	return fld, nil
+	return fld
 }
 
 // Div returns the mod division of two fields
-func (f *FieldElement) Div(fe FieldElement) (FieldElement, error) {
+func (f *FieldElement) Div(fe FieldElement) FieldElement {
 
 	if !CheckField(f.prime, fe.prime) {
-		return FieldElement{}, errors.New("Not member of same field")
+		panic("Not member of same field")
 	}
 
 	// num = (self.num * pow(other.num, self.prime - 2, self.prime)) % self.prime
@@ -186,7 +186,7 @@ func (f *FieldElement) Div(fe FieldElement) (FieldElement, error) {
 		prime: f.prime,
 	}
 
-	return fld, nil
+	return fld
 }
 
 // pValue generates the value of p

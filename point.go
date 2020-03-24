@@ -116,24 +116,24 @@ func CheckSameCurve(p1 *Point, p2 *Point) error {
 }
 
 // Add function performs point addition on two points
-func (p *Point) Add(po *Point) (*Point, error) {
+func (p *Point) Add(po *Point) *Point {
 
 	// validate if the points to be added are on the same curve
 	isSameCurve := CheckSameCurve(p, po)
 	if isSameCurve != nil {
-		return &Point{}, isSameCurve
+		panic(isSameCurve)
 	}
 
 	// Case 0.0: self is the point at infinity, return other
 	if p.x.num.Cmp(inf) == 0 {
 
-		return po, nil
+		return po
 	}
 
 	// Case 0.1: other is the point at infinity, return self
 	if po.x.num.Cmp(inf) == 0 {
 
-		return p, nil
+		return p
 	}
 
 	// Case 1: self.x == other.x, self.y != other.y
@@ -142,7 +142,7 @@ func (p *Point) Add(po *Point) (*Point, error) {
 
 		infa := NewFieldElement(*inf)
 		infb := NewFieldElement(*inf)
-		return &Point{infa, infb, NewFieldElement(*A), NewFieldElement(*B)}, nil
+		return &Point{infa, infb, NewFieldElement(*A), NewFieldElement(*B)}
 	}
 
 	// Case 2: self.x ≠ other.x
@@ -152,20 +152,20 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// y3=s*(x1-x3)-y1
 	if !p.x.IsEqual(po.x) {
 
-		ss1, _ := po.y.Sub(*p.y)
-		ss2, _ := po.x.Sub(*p.x)
+		ss1 := po.y.Sub(*p.y)
+		ss2 := po.x.Sub(*p.x)
 
-		sDiv, _ := ss1.Div(ss2)
+		sDiv := ss1.Div(ss2)
 
-		x3, _ := sDiv.Pow(*big.NewInt(2))
-		x3, _ = x3.Sub(*p.x)
-		x3, _ = x3.Sub(*po.x)
+		x3 := sDiv.Pow(*big.NewInt(2))
+		x3 = x3.Sub(*p.x)
+		x3 = x3.Sub(*po.x)
 
-		y, _ := p.x.Sub(x3)
-		y, _ = sDiv.Mul(y)
-		y, _ = y.Sub(*p.y)
+		y := p.x.Sub(x3)
+		y = sDiv.Mul(y)
+		y = y.Sub(*p.y)
 
-		return &Point{&x3, &y, p.a, p.b}, nil
+		return &Point{&x3, &y, p.a, p.b}
 
 	}
 
@@ -176,25 +176,25 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// y3 = s * (x1 - x3) - y1
 	if p.IsEqual(*po) {
 
-		x12, _ := p.x.Pow(*big.NewInt(2))
+		x12 := p.x.Pow(*big.NewInt(2))
 		fe3 := NewFieldElement(*big.NewInt(3))
-		sNom, _ := x12.Mul(*fe3)
+		sNom := x12.Mul(*fe3)
 		sNom, _ = sNom.Add(*p.a)
 
 		fe2 := NewFieldElement(*big.NewInt(2))
-		sDom, _ := p.y.Mul(*fe2)
+		sDom := p.y.Mul(*fe2)
 
-		sDiv, _ := sNom.Div(sDom)
+		sDiv := sNom.Div(sDom)
 
-		x3, _ := sDiv.Pow(*big.NewInt(2))
-		xx, _ := p.x.Mul(*fe2)
-		x3, _ = x3.Sub(xx)
+		x3 := sDiv.Pow(*big.NewInt(2))
+		xx := p.x.Mul(*fe2)
+		x3 = x3.Sub(xx)
 
-		y, _ := p.x.Sub(x3)
-		y, _ = sDiv.Mul(y)
-		y, _ = y.Sub(*p.y)
+		y := p.x.Sub(x3)
+		y = sDiv.Mul(y)
+		y = y.Sub(*p.y)
 
-		return &Point{&x3, &y, p.a, p.b}, nil
+		return &Point{&x3, &y, p.a, p.b}
 	}
 
 	// Case 4: if we are tangent to the vertical line,
@@ -207,11 +207,11 @@ func (p *Point) Add(po *Point) (*Point, error) {
 
 		infa := NewFieldElement(*inf)
 		infb := NewFieldElement(*inf)
-		return &Point{infa, infb, NewFieldElement(*A), NewFieldElement(*B)}, nil
+		return &Point{infa, infb, NewFieldElement(*A), NewFieldElement(*B)}
 	}
 
 	// Throw exemption in case point does not fall into any of the conditions
-	return &Point{}, errors.New("Point addition exemption: no condition fulfilled")
+	panic("Point addition exemption: no condition fulfilled")
 }
 
 // IsEqual checks if two points are equal
@@ -264,9 +264,9 @@ BitShift:
 		// sets z = x & y and returns z
 		coefBit.And(&coef, big.NewInt(1))
 		if coefBit.Cmp(big.NewInt(1)) == 0 {
-			result, _ = result.Add(current)
+			result = result.Add(current)
 		}
-		current, _ = current.Add(current)
+		current = current.Add(current)
 
 		// z = x >> n and returns z
 		coef.Rsh(&coef, 1) // coef >> 1

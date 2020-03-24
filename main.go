@@ -7,17 +7,7 @@ import (
 // this is the main
 func main() {
 
-	z := hexToBigInt("0xbc62d4b80d9e36da29c16c5d4d9f11731f36052c72401a76c23c0fb5a9b74423")
-	fe := NewFieldElement(*z)
-
-	fe.print()
-	// testVerify()
-	// z := hexToBigInt("0xbc62d4b80d9e36da29c16c5d4d9f11731f36052c72401a76c23c0fb5a9b74423")
-	// s := hexToBigInt("0x8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec")
-	// //var e = big.NewInt(2)
-	// var i big.Int
-	// i.Exp(s, z, z)
-	// fmt.Println(i)
+	testSignature()
 }
 
 func testVerify() {
@@ -35,4 +25,13 @@ func testVerify() {
 	ver := point.verify(z, s, r)
 
 	fmt.Println(ver)
+}
+
+func testSignature() {
+	r := hexToBigInt("0x37206a0610995c58074999cb9767b87af4c4978db68c06e8e6e81d282047a7c6")
+	s := hexToBigInt("0x8ca63759c1157ebeaec0d03cecca119fc9a75bf8e6d0fa65c841c8e2738cdaec")
+
+	sig := NewSignature(r, s)
+
+	sig.print()
 }
