@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
@@ -239,7 +240,6 @@ func (p *Point) IsEqual(po Point) bool {
 // 		current += current  # <4>
 // 		coef >>= 1  # <5>
 // 	return result
-
 func (p *Point) rMul(coef big.Int) *Point {
 	current := p
 
@@ -284,4 +284,21 @@ BitShift:
 	}
 
 	return result
+}
+
+// hexToBigInt will parse hex string to big int
+// Note: remove 0x prefix of hex string
+func hexToBigInt(hexStr string) (*big.Int, error) {
+
+	// try convert hex string to []bytes
+	decByte, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, err
+	}
+
+	// []bytes to big.Int
+	z := new(big.Int)
+	z.SetBytes(decByte)
+
+	return z, nil
 }

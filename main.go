@@ -1,13 +1,30 @@
 package main
 
 import (
+	"encoding/hex"
 	"fmt"
+	"log"
 	"math/big"
 )
 
 // this is the main
 func main() {
-	testRMul()
+	testHex()
+}
+
+func testHex() {
+	N := "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+
+	// const s = "48656c6c6f20476f7068657221"
+	decByte, err := hex.DecodeString(N)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	z := new(big.Int)
+	z.SetBytes(decByte)
+
+	fmt.Printf("%s\n", z)
 }
 
 func testRMul() {

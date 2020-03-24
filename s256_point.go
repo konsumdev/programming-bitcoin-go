@@ -1,7 +1,7 @@
 package main
 
 import (
-	"math"
+	"log"
 	"math/big"
 )
 
@@ -15,6 +15,9 @@ var A = 0
 
 // B variable
 var B = 7
+
+// N we'll use the string representation for the hex value of N
+const N = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
 
 // NewS256Point init a new s256 point
 func NewS256Point(x, y big.Int) (S256Point, error) {
@@ -41,14 +44,20 @@ func NewS256Point(x, y big.Int) (S256Point, error) {
 }
 
 // S256RMul redux mul for s256
-func (sp *S256Point) S256RMul(coef int) *S256Point {
-	// var N float64
-	// N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+func (sp *S256Point) S256RMul(coef big.Int) *S256Point {
 
-	// cf := math.Mod(float64(coef), N)
+	// try convert hex string to []bytes
+	decByte, err := hexToBigInt(N)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// r := sp.p.rMul(int(cf))
-	r256 := S256Point{}
+	var cf big.Int
+	cf.Mod(&coef, decByte)
+
+	res := sp.p.rMul(cf)
+
+	r256 := S256Point{*res}
 	return &r256
 }
 
@@ -59,16 +68,18 @@ func (sp *S256Point) S256RMul(coef int) *S256Point {
 // return total.x.num == sig.r  # <5>
 func verify(sp *S256Point, z *S256Point, sig *Signature, G *S256Point) bool {
 
-	n2 := N / float64(2)
-	sInv := math.Pow(sig.s, n2)
-	sInvF, _ := NewS256Field(*big.NewInt(int64(sInv)))
-	u, _ := z.p.x.Mul(sInvF.f)
-	sigRF, _ := NewS256Field(*big.NewInt(int64(sig.r)))
-	v, _ := sInvF.f.Mul(sigRF.f)
+	// n2 := N / float64(2)
+	// sInv := math.Pow(sig.s, n2)
+	// sInvF, _ := NewS256Field(*big.NewInt(int64(sInv)))
+	// u, _ := z.p.x.Mul(sInvF.f)
+	// sigRF, _ := NewS256Field(*big.NewInt(int64(sig.r)))
+	// v, _ := sInvF.f.Mul(sigRF.f)
 
-	total, _ := u.Mul(*G.p.x)
-	total1, _ := v.Mul(*sp.p.x)
-	total, _ = total.Add(total1)
+	// total, _ := u.Mul(*G.p.x)
+	// total1, _ := v.Mul(*sp.p.x)
+	// total, _ = total.Add(total1)
 
-	return total.num.Int64() == int64(sig.r)
+	// return total.num.Int64() == int64(sig.r)
+
+	return false
 }

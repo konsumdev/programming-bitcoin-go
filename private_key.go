@@ -1,10 +1,5 @@
 package main
 
-import "math"
-
-// N constant
-const N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
-
 // PrivateKey a truct representation of a private key
 type PrivateKey struct {
 	secret S256Point
@@ -24,21 +19,23 @@ func NewPrivateKey(sec *Point, G *Point) PrivateKey {
 
 func sign(pk *PrivateKey, z *S256Point, G *S256Point) Signature {
 
-	k := pk.deterministicK(z)
-	r, _ := k.point.p.x.Mul(*G.p.x)
-	kInv, _ := pk.point.p.x.Pow(k.point.p.x.num.Int64())
+	// k := pk.deterministicK(z)
+	// r, _ := k.point.p.x.Mul(*G.p.x)
+	// kInv, _ := pk.point.p.x.Pow(k.point.p.x.num.Int64())
 
-	s, _ := r.Mul(*pk.secret.p.x)
-	s1, _ := z.p.x.Add(s)
-	s2, _ := s1.Add(kInv)
-	s3 := math.Mod(float64(s2.num.Int64()), N)
+	// s, _ := r.Mul(*pk.secret.p.x)
+	// s1, _ := z.p.x.Add(s)
+	// s2, _ := s1.Add(kInv)
+	// s3 := math.Mod(float64(s2.num.Int64()), N)
 
-	n2 := N / float64(2)
-	if s3 > n2 {
-		s3 = N - s3
-	}
+	// n2 := N / float64(2)
+	// if s3 > n2 {
+	// 	s3 = N - s3
+	// }
 
-	return Signature{float64(r.num.Int64()), s3}
+	// return Signature{float64(r.num.Int64()), s3}
+
+	return Signature{}
 }
 
 // TO DO, should return a digest - hash sha256
