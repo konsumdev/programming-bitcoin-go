@@ -240,7 +240,7 @@ func (p *Point) IsEqual(po Point) bool {
 // 		coef >>= 1  # <5>
 // 	return result
 
-func (p *Point) rMul(coef int) *Point {
+func (p *Point) rMul(coef big.Int) *Point {
 	current := p
 
 	infx, _ := NewFieldElement(*inf, *p.a.prime)
@@ -248,25 +248,36 @@ func (p *Point) rMul(coef int) *Point {
 	result := &newPoint
 
 	// return inf if coef is 0 or below
-	if coef < 1 {
+	// -1 x < y
+	// 0 x == y
+	// 1 x > y
+	if coef.Cmp(big.NewInt(1)) == -1 {
 		return result
 	}
 
-	result = current
+	result = &newPoint
 
 	// return self if coef is 1
-	if coef == 1 {
+	if coef.Cmp(big.NewInt(1)) == 0 {
 		return result
 	}
 
+	var coefBit big.Int
 BitShift:
 	for {
-		if (coef & 1) == 1 {
+
+		// coef & 1
+		// We are looking at whether the rightmost bit is a 1. If it is, then we add the value of the current bit.
+		coefBit.And(&coef, big.NewInt(1))
+		if coefBit.Cmp(big.NewInt(1)) == 0 {
 			result, _ = result.Add(current)
 		}
 		current, _ = current.Add(current)
-		coef = coef >> 1
-		if (coef) <= 0 {
+
+		// z = x >> n and returns z
+		coef.Rsh(&coef, 1) // coef >> 1
+		// end loop when all bits have been shifted
+		if coef.Cmp(zero) == 0 {
 			break BitShift
 		}
 

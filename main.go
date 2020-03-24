@@ -7,7 +7,7 @@ import (
 
 // this is the main
 func main() {
-	test1()
+	testRMul()
 }
 
 func testRMul() {
@@ -41,7 +41,8 @@ func testRMul() {
 	fmt.Print("p1 = ")
 	p1.print()
 
-	z := p1.rMul(0)
+	coef := big.NewInt(2)
+	z := p1.rMul(*coef)
 	fmt.Print("z = ")
 	z.print()
 }

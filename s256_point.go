@@ -42,13 +42,13 @@ func NewS256Point(x, y big.Int) (S256Point, error) {
 
 // S256RMul redux mul for s256
 func (sp *S256Point) S256RMul(coef int) *S256Point {
-	var N float64
-	N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+	// var N float64
+	// N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
 
-	cf := math.Mod(float64(coef), N)
+	// cf := math.Mod(float64(coef), N)
 
-	r := sp.p.rMul(int(cf))
-	r256 := S256Point{*r}
+	// r := sp.p.rMul(int(cf))
+	r256 := S256Point{}
 	return &r256
 }
 
