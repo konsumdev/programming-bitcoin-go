@@ -1,15 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Signature is a struct representation of a signature
 type Signature struct {
-	r float64
-	s float64
+	r S256Field
+	s S256Field
 }
 
 // NewSignature inits a new signature
-func NewSignature(r, s float64) Signature {
+func NewSignature(r, s S256Field) Signature {
 	return Signature{r, s}
 }
 

@@ -288,17 +288,17 @@ BitShift:
 
 // hexToBigInt will parse hex string to big int
 // Note: remove 0x prefix of hex string
-func hexToBigInt(hexStr string) (*big.Int, error) {
+func hexToBigInt(hexStr string) *big.Int {
 
 	// try convert hex string to []bytes
 	decByte, err := hex.DecodeString(hexStr)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// []bytes to big.Int
 	z := new(big.Int)
 	z.SetBytes(decByte)
 
-	return z, nil
+	return z
 }

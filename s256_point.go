@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math/big"
 )
 
@@ -47,10 +46,7 @@ func NewS256Point(x, y big.Int) (S256Point, error) {
 func (sp *S256Point) S256RMul(coef big.Int) *S256Point {
 
 	// try convert hex string to []bytes
-	decByte, err := hexToBigInt(N)
-	if err != nil {
-		log.Fatal(err)
-	}
+	decByte := hexToBigInt(N)
 
 	var cf big.Int
 	cf.Mod(&coef, decByte)
@@ -61,6 +57,7 @@ func (sp *S256Point) S256RMul(coef big.Int) *S256Point {
 	return &r256
 }
 
+// verify function validate signature
 // s_inv = pow(sig.s, N - 2, N)  # <1>
 // u = z * s_inv % N  # <2>
 // v = sig.r * s_inv % N  # <3>
@@ -68,18 +65,21 @@ func (sp *S256Point) S256RMul(coef big.Int) *S256Point {
 // return total.x.num == sig.r  # <5>
 func verify(sp *S256Point, z *S256Point, sig *Signature, G *S256Point) bool {
 
-	// n2 := N / float64(2)
-	// sInv := math.Pow(sig.s, n2)
-	// sInvF, _ := NewS256Field(*big.NewInt(int64(sInv)))
-	// u, _ := z.p.x.Mul(sInvF.f)
-	// sigRF, _ := NewS256Field(*big.NewInt(int64(sig.r)))
-	// v, _ := sInvF.f.Mul(sigRF.f)
+	n := hexToBigInt(N)
+	var nMinTwo big.Int
+	var sInv, u, v S256Field
+	nMinTwo.Sub(n, big.NewInt(2))
 
-	// total, _ := u.Mul(*G.p.x)
-	// total1, _ := v.Mul(*sp.p.x)
-	// total, _ = total.Add(total1)
+	sInv.f.num.Exp(sig.s.f.num, &nMinTwo, n)
+	zsInv, _ := z.p.x.Mul(sInv.f)
 
-	// return total.num.Int64() == int64(sig.r)
+	u.f.num.Mod(zsInv.num, n)
+	rsInv, _ := sInv.f.Mul(sig.r.f)
+	v.f.num.Mod(rsInv.num, n)
 
-	return false
+	total, _ := u.f.Mul(*G.p.x)
+	total1, _ := v.f.Mul(*sp.p.x)
+	total, _ = total.Add(total1)
+
+	return (total.num.Cmp(sig.r.f.num) == 1)
 }

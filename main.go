@@ -9,7 +9,8 @@ import (
 
 // this is the main
 func main() {
-	testHex()
+	p := pValue()
+	fmt.Printf("%s\n", p.String())
 }
 
 func testHex() {

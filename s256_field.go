@@ -20,6 +20,7 @@ func NewS256Field(num big.Int) (S256Field, error) {
 	return fld, nil
 }
 
+// pValue generates the value of p
 // p = 2**256 - 2**32 - 977
 func pValue() big.Int {
 	var two256, two32, p big.Int
