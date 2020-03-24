@@ -18,5 +18,8 @@ func NewSignature(r, s S256Field) Signature {
 func (f *Signature) print() {
 	fnum := f.r
 	fprime := f.s
-	fmt.Printf("Signature(%.f, %.f)\n", fprime, fnum)
+
+	snum := fnum.f.num.String()
+	sprime := fprime.f.num.String()
+	fmt.Printf("Signature(%s, %s)\n", sprime, snum)
 }

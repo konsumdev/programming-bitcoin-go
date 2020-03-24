@@ -9,6 +9,8 @@ import (
 var zero = big.NewInt(0)
 var inf = big.NewInt(0)
 
+var prime = pValue()
+
 // FieldElement struct representation of a field element
 type FieldElement struct {
 	num   *big.Int
@@ -22,30 +24,27 @@ func (f *FieldElement) print() {
 }
 
 // NewFieldElement returns new field element
-func NewFieldElement(num big.Int, prime big.Int) (FieldElement, error) {
-
-	// num := big.NewInt(a)
-	// prime := big.NewInt(b)
+func NewFieldElement(num big.Int) *FieldElement {
 
 	//if num >= prime or num < 0
 	// -1 x < y
 	// 0 x == y
 	// 1 x > y
-	cmp := num.Cmp(&prime)
+	cmp := num.Cmp(prime)
 	cmpZ := num.Cmp(zero)
 
 	if cmp >= 0 || cmpZ == -1 {
 
 		resStr := fmt.Sprintf("%s not in field range of prime %s", num.String(), prime.String())
-		return FieldElement{}, errors.New(resStr)
+		panic(resStr)
 	}
 
 	fe := FieldElement{
 		num:   &num,
-		prime: &prime,
+		prime: prime,
 	}
 
-	return fe, nil
+	return &fe
 }
 
 // CheckField checks if the two elements are member of same field
@@ -147,12 +146,12 @@ func (f *FieldElement) Mul(fe FieldElement) (FieldElement, error) {
 }
 
 // Pow returns the mod exponent of an element
-func (f *FieldElement) Pow(exp int64) (FieldElement, error) {
+func (f *FieldElement) Pow(exp big.Int) (FieldElement, error) {
 
 	var res, n, fprime big.Int
-	var e = big.NewInt(exp)
+	// var e = big.NewInt(exp)
 	fprime.Sub(f.prime, big.NewInt(1))
-	n.Mod(e, &fprime)
+	n.Mod(&exp, &fprime)
 
 	res.Exp(f.num, &n, f.prime)
 	// res.Mod(&res, &fprime)
@@ -188,4 +187,17 @@ func (f *FieldElement) Div(fe FieldElement) (FieldElement, error) {
 	}
 
 	return fld, nil
+}
+
+// pValue generates the value of p
+// p = 2**256 - 2**32 - 977
+func pValue() *big.Int {
+	var two256, two32, p big.Int
+	two256.Exp(big.NewInt(2), big.NewInt(256), nil)
+	two32.Exp(big.NewInt(2), big.NewInt(32), nil)
+
+	p.Sub(&two256, &two32)
+	p.Sub(&p, big.NewInt(977))
+
+	return &p
 }

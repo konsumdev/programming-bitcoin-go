@@ -7,6 +7,12 @@ import (
 	"math/big"
 )
 
+// A variable
+var A = big.NewInt(0)
+
+// B variable
+var B = big.NewInt(7)
+
 // Point is a struct representation of a point
 type Point struct {
 	x *FieldElement
@@ -17,63 +23,51 @@ type Point struct {
 
 // PrintPoint outputs string representation of a point
 func (p *Point) print() {
-	a := p.a
-	b := p.b
+
 	x := p.x
 	y := p.y
 
-	aa := a.num.String()
-	bb := b.num.String()
 	xx := x.num.String()
 	yy := y.num.String()
-	pr := a.prime.String()
+	pr := prime.String()
 
 	if xx == "0" || yy == "0" {
 		fmt.Println("Point(infinity)")
 		return
 	}
 
-	fmt.Printf("Point (%s, %s)_%s_%s FieldElement(%s)\n", xx, yy, aa, bb, pr)
+	fmt.Printf("Point (%s, %s)_%d_%d FieldElement(%s)\n", xx, yy, A, B, pr)
 }
 
 // NewPoint inits a new field element point
-func NewPoint(x, y, a, b FieldElement) (Point, error) {
-
-	if (x.num.Cmp(zero) == 0) || (y.num.Cmp(zero) == 0) {
-
-		pnt := Point{
-			x: &x,
-			y: &y,
-			a: &a,
-			b: &b,
-		}
-
-		return pnt, nil
-	}
-
-	onCurve := CheckIfOnCurve(x.num, y.num, a.num, b.num, a.prime)
-	if !onCurve {
-		aa := a.num.String()
-		bb := b.num.String()
-		xx := x.num.String()
-		yy := y.num.String()
-
-		resStr := fmt.Sprintf("Point (%s, %s)_%s_%s is not on the curve", xx, yy, aa, bb)
-		return Point{}, errors.New(resStr)
-	}
+func NewPoint(x, y big.Int) Point {
 
 	pnt := Point{
-		x: &x,
-		y: &y,
-		a: &a,
-		b: &b,
+		x: NewFieldElement(x),
+		y: NewFieldElement(y),
+		a: NewFieldElement(*A),
+		b: NewFieldElement(*B),
 	}
 
-	return pnt, nil
+	if (x.Cmp(zero) == 0) || (y.Cmp(zero) == 0) {
+		return pnt
+	}
+
+	onCurve := CheckIfOnCurve(&x, &y)
+	if !onCurve {
+
+		xx := x.String()
+		yy := y.String()
+
+		resStr := fmt.Sprintf("Point (%s, %s)_%d_%d is not on the curve", xx, yy, A, B)
+		panic(resStr)
+	}
+
+	return pnt
 }
 
 // CheckIfOnCurve checks if the point is on the curve
-func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int, prime *big.Int) bool {
+func CheckIfOnCurve(x *big.Int, y *big.Int) bool {
 
 	// y2 = x3 + ax + b
 	// 18, 77
@@ -91,11 +85,11 @@ func CheckIfOnCurve(x *big.Int, y *big.Int, a *big.Int, b *big.Int, prime *big.I
 	//x3
 	x3.Exp(x, e3, nil)
 	// a*x
-	reEq.Mul(a, x)
+	reEq.Mul(A, x)
 	// x3 + ax
 	reEq.Add(&reEq, &x3)
 	// x3 + ax + b
-	reEq.Add(&reEq, b)
+	reEq.Add(&reEq, B)
 	reEqMod.Mod(&reEq, prime)
 
 	res := y2Mod.Cmp(&reEqMod)
@@ -114,7 +108,7 @@ func CheckSameCurve(p1 *Point, p2 *Point) error {
 	p2a := p2.a
 	p2b := p2.b
 
-	if !p1a.IsEqual(p2a) || !p1b.IsEqual(p2b) {
+	if (!p1a.IsEqual(p2a)) || (!p1b.IsEqual(p2b)) {
 		return errors.New("Points are not on the same curve")
 	}
 
@@ -146,9 +140,9 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// Result is point at infinity
 	if (p.x.num.Cmp(po.x.num) == 0) && (p.y.num.Cmp(po.y.num) != 0) {
 
-		infa, _ := NewFieldElement(*inf, *p.a.prime)
-		infb, _ := NewFieldElement(*inf, *p.b.prime)
-		return &Point{&infa, &infb, p.a, p.b}, nil
+		infa := NewFieldElement(*inf)
+		infb := NewFieldElement(*inf)
+		return &Point{infa, infb, NewFieldElement(*A), NewFieldElement(*B)}, nil
 	}
 
 	// Case 2: self.x ≠ other.x
@@ -163,7 +157,7 @@ func (p *Point) Add(po *Point) (*Point, error) {
 
 		sDiv, _ := ss1.Div(ss2)
 
-		x3, _ := sDiv.Pow(2)
+		x3, _ := sDiv.Pow(*big.NewInt(2))
 		x3, _ = x3.Sub(*p.x)
 		x3, _ = x3.Sub(*po.x)
 
@@ -182,18 +176,18 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// y3 = s * (x1 - x3) - y1
 	if p.IsEqual(*po) {
 
-		x12, _ := p.x.Pow(2)
-		fe3, _ := NewFieldElement(*big.NewInt(3), *p.a.prime)
-		sNom, _ := x12.Mul(fe3)
+		x12, _ := p.x.Pow(*big.NewInt(2))
+		fe3 := NewFieldElement(*big.NewInt(3))
+		sNom, _ := x12.Mul(*fe3)
 		sNom, _ = sNom.Add(*p.a)
 
-		fe2, _ := NewFieldElement(*big.NewInt(2), *p.a.prime)
-		sDom, _ := p.y.Mul(fe2)
+		fe2 := NewFieldElement(*big.NewInt(2))
+		sDom, _ := p.y.Mul(*fe2)
 
 		sDiv, _ := sNom.Div(sDom)
 
-		x3, _ := sDiv.Pow(2)
-		xx, _ := p.x.Mul(fe2)
+		x3, _ := sDiv.Pow(*big.NewInt(2))
+		xx, _ := p.x.Mul(*fe2)
 		x3, _ = x3.Sub(xx)
 
 		y, _ := p.x.Sub(x3)
@@ -211,9 +205,9 @@ func (p *Point) Add(po *Point) (*Point, error) {
 	// 0 * self.x is 0
 	if (p.IsEqual(*po)) && (p.y.num.Cmp(zero) == 0) {
 
-		infa, _ := NewFieldElement(*inf, *p.a.prime)
-		infb, _ := NewFieldElement(*inf, *p.b.prime)
-		return &Point{&infa, &infb, p.a, p.b}, nil
+		infa := NewFieldElement(*inf)
+		infb := NewFieldElement(*inf)
+		return &Point{infa, infb, NewFieldElement(*A), NewFieldElement(*B)}, nil
 	}
 
 	// Throw exemption in case point does not fall into any of the conditions
@@ -243,8 +237,7 @@ func (p *Point) IsEqual(po Point) bool {
 func (p *Point) rMul(coef big.Int) *Point {
 	current := p
 
-	infx, _ := NewFieldElement(*inf, *p.a.prime)
-	newPoint, _ := NewPoint(infx, infx, *p.a, *p.b) // init to infinity
+	newPoint := NewPoint(*inf, *inf) // init to infinity
 	result := &newPoint
 
 	// return inf if coef is 0 or below
@@ -268,6 +261,7 @@ BitShift:
 
 		// coef & 1
 		// We are looking at whether the rightmost bit is a 1. If it is, then we add the value of the current bit.
+		// sets z = x & y and returns z
 		coefBit.And(&coef, big.NewInt(1))
 		if coefBit.Cmp(big.NewInt(1)) == 0 {
 			result, _ = result.Add(current)
@@ -287,8 +281,10 @@ BitShift:
 }
 
 // hexToBigInt will parse hex string to big int
-// Note: remove 0x prefix of hex string
-func hexToBigInt(hexStr string) *big.Int {
+// Note: assumes there is 0x prefix of hex string
+func hexToBigInt(str string) *big.Int {
+
+	hexStr := str[2:len(str)]
 
 	// try convert hex string to []bytes
 	decByte, err := hex.DecodeString(hexStr)
