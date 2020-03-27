@@ -28,31 +28,33 @@ func NewPrivateKey(secret *big.Int) PrivateKey {
 }
 
 func (pk *PrivateKey) sign(z *big.Int) Signature {
-	var kInv, sFinal big.Int
+	var kInv, rs, zrs, zrsk, s, n2, ns big.Int
 	n := hexToBigInt(N)
 	nField := NewFieldElement(*n)
 
 	nMinTwo := nField.Sub(*NewFieldElement(*big.NewInt(2)))
 
-	k := pk.deterministicK(z)
+	k := pk.deterministicK(z) //hexToBigInt("0xfab33240037374b9131c54deb7264fb3836f03c754736c73cb42376c90f5d45b") //pk.deterministicK(z)
 	r := G.S256RMul(*k)
+
 	kInv.Exp(k, nMinTwo.num, n)
 
-	zField := NewFieldElement(*z)
-	s := r.point.x.Add(*zField)
-	sPoint := pk.point.S256RMul(*s.num)
-	sPoint = sPoint.S256RMul(kInv)
+	rs.Mul(r.point.x.num, pk.secret)
 
-	sFinal.Mod(sPoint.point.x.num, n)
+	zrs.Add(z, &rs)
 
-	nDiv := nField.Div(*NewFieldElement(*big.NewInt(2)))
+	zrsk.Mul(&zrs, &kInv)
 
-	if sFinal.Cmp(nDiv.num) == 1 {
-		sRet := nField.Sub(*NewFieldElement(sFinal))
-		sFinal = *sRet.num
+	s.Mod(&zrsk, n)
+
+	n2.Div(n, big.NewInt(2))
+
+	if s.Cmp(&n2) == 1 {
+		news := ns.Sub(n, &s)
+		s = *news
 	}
 
-	return Signature{r.point.x.num, &sFinal}
+	return Signature{r.point.x.num, &s}
 }
 
 // TO DO, should return a digest - hash sha256
@@ -63,4 +65,12 @@ func (pk *PrivateKey) deterministicK(z *big.Int) *big.Int {
 	rNum, _ := rand.Int(rand.Reader, z)
 
 	return rNum
+}
+
+// p2256 is 2**256
+func p2256() *big.Int {
+	var two256 big.Int
+	two256.Exp(big.NewInt(2), big.NewInt(256), nil)
+
+	return &two256
 }

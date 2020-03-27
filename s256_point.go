@@ -58,7 +58,7 @@ v = sig.r * s_inv % N  # <3>
 total = u * G + v * self  # <4>
 return total.x.num == sig.r  # <5>
 */
-func (sp *S256Point) verify(z, s, r *big.Int) bool {
+func (sp *S256Point) verify(z, r, s *big.Int) bool {
 
 	var sInv, u, v, zsInv, rsInv big.Int
 

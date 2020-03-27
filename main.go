@@ -1,8 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/big"
 )
 
 // this is the main
@@ -12,25 +12,16 @@ func main() {
 }
 
 func textPk() {
-	// n := hexToBigInt(N)
-	// rNum, _ := rand.Int(rand.Reader, n)
-	rm := hexToBigInt("0xe591edebdd99ccaef1ed58e43678845851b39d5e898eaae89ce45ceac8795731")
-	pk := NewPrivateKey(rm)
-	// p := pv()
-	z := hexToBigInt("0x140e23bbb6dedc5d29a203e9a4c115208b6dc92db74168beb6d4e26abd868997")
-	// print int("0xdeadbeef", 0) // h=hex(9071239452462906272752619527246766279947331302853217229978344085296718973335)
+	n := hexToBigInt(N)
+	rNum, _ := rand.Int(rand.Reader, n) // generate random from 0 to n
+	// rm := hexToBigInt("0xe591edebdd99ccaef1ed58e43678845851b39d5e898eaae89ce45ceac8795731")
+	pk := NewPrivateKey(rNum)
+	z := p2256() // 2**256
+	// z := hexToBigInt("0x140e23bbb6dedc5d29a203e9a4c115208b6dc92db74168beb6d4e26abd868997")
 	sig := pk.sign(z)
-	// sig.print()
 
 	truth := pk.point.verify(z, sig.r, sig.s)
 	fmt.Println(truth)
-}
-
-func pv() *big.Int {
-	var two256 big.Int
-	two256.Exp(big.NewInt(2), big.NewInt(256), nil)
-
-	return &two256
 }
 
 func testVerify() {
