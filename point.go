@@ -179,7 +179,7 @@ func (p *Point) Add(po *Point) *Point {
 		x12 := p.x.Pow(*big.NewInt(2))
 		fe3 := NewFieldElement(*big.NewInt(3))
 		sNom := x12.Mul(*fe3)
-		sNom, _ = sNom.Add(*p.a)
+		sNom = sNom.Add(*p.a)
 
 		fe2 := NewFieldElement(*big.NewInt(2))
 		sDom := p.y.Mul(*fe2)

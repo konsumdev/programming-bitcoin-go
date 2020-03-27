@@ -59,11 +59,8 @@ total = u * G + v * self  # <4>
 return total.x.num == sig.r  # <5>
 */
 func (sp *S256Point) verify(z, s, r *big.Int) bool {
-	// var nMinTwo, zsInv, u FieldElement
-	var sInv, u, v big.Int
 
-	zField := NewFieldElement(*z)
-	rField := NewFieldElement(*r)
+	var sInv, u, v, zsInv, rsInv big.Int
 
 	n := hexToBigInt(N)
 	nField := NewFieldElement(*n)
@@ -71,12 +68,13 @@ func (sp *S256Point) verify(z, s, r *big.Int) bool {
 	nMinTwo := nField.Sub(*NewFieldElement(*big.NewInt(2)))
 
 	sInv.Exp(s, nMinTwo.num, n)
-	sInvField := NewFieldElement(sInv)
-	zsInv := sInvField.Mul(*zField)
-	u.Mod(zsInv.num, n)
 
-	rsInv := sInvField.Mul(*rField)
-	v.Mod(rsInv.num, n)
+	zsInv.Mul(&sInv, z)
+	u.Mod(&zsInv, n)
+
+	rsInv.Mul(r, &sInv)
+
+	v.Mod(&rsInv, n)
 
 	G := gValue()
 

@@ -86,10 +86,10 @@ func (f *FieldElement) IsNotEqual(fe FieldElement) (bool, error) {
 }
 
 // Add returns the mod sum of two fields
-func (f *FieldElement) Add(fe FieldElement) (FieldElement, error) {
+func (f *FieldElement) Add(fe FieldElement) FieldElement {
 
 	if !CheckField(f.prime, fe.prime) {
-		return FieldElement{}, errors.New("Not members of the same field")
+		panic("Not members of the same field")
 	}
 
 	var res, mod big.Int
@@ -102,7 +102,7 @@ func (f *FieldElement) Add(fe FieldElement) (FieldElement, error) {
 		prime: f.prime,
 	}
 
-	return fld, nil
+	return fld
 }
 
 // Sub returns the mod subtraction of two fields

@@ -5,18 +5,23 @@ import (
 	"math/big"
 )
 
+// G point coordinate
+var G = gValue()
+
 // PrivateKey a truct representation of a private key
 type PrivateKey struct {
-	secret *S256Point
+	secret *big.Int
 	point  *S256Point
 }
 
 // NewPrivateKey inits a new private key
-func NewPrivateKey(secret *Point) PrivateKey {
+func NewPrivateKey(secret *big.Int) PrivateKey {
+
+	np := G.S256RMul(*secret)
 
 	privK := PrivateKey{
-		secret: &S256Point{secret},
-		point:  gValue(),
+		secret: secret,
+		point:  np,
 	}
 
 	return privK
@@ -29,14 +34,13 @@ func (pk *PrivateKey) sign(z *big.Int) Signature {
 
 	nMinTwo := nField.Sub(*NewFieldElement(*big.NewInt(2)))
 
-	G := gValue()
 	k := pk.deterministicK(z)
-	r := k.point.S256RMul(*G.point.x.num)
-	kInv.Exp(k.point.point.x.num, nMinTwo.num, n)
+	r := G.S256RMul(*k)
+	kInv.Exp(k, nMinTwo.num, n)
 
 	zField := NewFieldElement(*z)
-	s, _ := zField.Add(*r.point.x)
-	sPoint := pk.secret.S256RMul(*s.num)
+	s := r.point.x.Add(*zField)
+	sPoint := pk.point.S256RMul(*s.num)
 	sPoint = sPoint.S256RMul(kInv)
 
 	sFinal.Mod(sPoint.point.x.num, n)
@@ -53,10 +57,10 @@ func (pk *PrivateKey) sign(z *big.Int) Signature {
 
 // TO DO, should return a digest - hash sha256
 // deterministicK unique k
-func (pk *PrivateKey) deterministicK(z *big.Int) PrivateKey {
+func (pk *PrivateKey) deterministicK(z *big.Int) *big.Int {
 
 	// Generate cryptographically strong pseudo-random between 0 - z
 	rNum, _ := rand.Int(rand.Reader, z)
-	rPoint := NewPoint(*rNum, *rNum)
-	return NewPrivateKey(&rPoint)
+
+	return rNum
 }
