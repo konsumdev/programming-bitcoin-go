@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/big"
+	"unicode/utf8"
 )
 
 // S256Point struct representation of s256 point
@@ -93,4 +94,42 @@ func gValue() *S256Point {
 
 	G := NewS256Point(*xHex, *yHex)
 	return &G
+}
+
+// sec returns the binary version of the SEC format
+func (sp *S256Point) sec(compressed bool) []byte {
+	if compressed {
+		var spMod2 big.Int
+		spMod2.Mod(sp.point.x.num, big.NewInt(2))
+		if spMod2.Bit(0) == 0 {
+			rs := []byte("\x02")
+			finalbyte := append(rs, sp.point.x.num.Bytes()...)
+			return finalbyte
+		}
+
+		rs := []byte("\x03")
+		finalbyte := append(rs, sp.point.x.num.Bytes()...)
+		return finalbyte
+	}
+
+	rs := []byte("\x04")
+	finalbyte := append(rs, sp.point.x.num.Bytes()...)
+	finalbyte = append(finalbyte, sp.point.y.num.Bytes()...)
+	return finalbyte
+}
+
+func runesToUTF8Manual2(rs []rune) []byte {
+	size := 0
+	for _, r := range rs {
+		size += utf8.RuneLen(r)
+	}
+
+	bs := make([]byte, size)
+
+	count := 0
+	for _, r := range rs {
+		count += utf8.EncodeRune(bs[count:], r)
+	}
+
+	return bs
 }
